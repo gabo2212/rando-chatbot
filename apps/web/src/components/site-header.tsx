@@ -9,6 +9,7 @@ import { cn } from "@chatbot/ui/lib/utils";
 const navLinks = [
   { href: "/ai", label: "CHAT" },
   { href: "/documents", label: "DOCS" },
+  { href: "/drive", label: "DRIVE" },
 ] as const;
 
 export default function SiteHeader() {

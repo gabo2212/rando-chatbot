@@ -1,0 +1,1450 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Endless Drive</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --panel: rgba(8, 13, 20, 0.72);
+      --line: rgba(255, 255, 255, 0.14);
+      --text: #f5f7fb;
+      --muted: rgba(245, 247, 251, 0.66);
+      --accent: #8ff0ff;
+      --accent-2: #fff08a;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #0a1118; }
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    button, input { font: inherit; }
+
+    #game, #game canvas.webgl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+    #game canvas.webgl { touch-action: none; }
+
+    #vignette {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      background: radial-gradient(circle at center, transparent 46%, rgba(0,0,0,.18) 72%, rgba(0,0,0,.48) 120%);
+    }
+
+    .glass {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 16px 55px rgba(0,0,0,.24);
+      backdrop-filter: blur(14px) saturate(1.15);
+      -webkit-backdrop-filter: blur(14px) saturate(1.15);
+    }
+
+    #hud { position: fixed; inset: 0; z-index: 5; pointer-events: none; opacity: 0; transition: opacity .35s ease; }
+    #hud.visible { opacity: 1; }
+
+    #stats {
+      position: absolute;
+      top: max(18px, env(safe-area-inset-top));
+      left: max(18px, env(safe-area-inset-left));
+      width: min(330px, calc(100vw - 36px));
+      padding: 15px 16px 14px;
+      border-radius: 18px;
+    }
+
+    #brand-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    #brand { font-size: 12px; font-weight: 800; letter-spacing: .22em; color: var(--muted); }
+    #weather { font-size: 11px; letter-spacing: .08em; color: var(--muted); }
+    #speed-row { display: flex; align-items: baseline; margin-top: 8px; }
+    #speed { font-variant-numeric: tabular-nums; font-size: clamp(48px, 7vw, 72px); line-height: .9; font-weight: 850; letter-spacing: -.06em; }
+    #unit { margin-left: 9px; font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: .08em; }
+    #gear { margin-left: auto; font-size: 22px; font-weight: 850; color: var(--accent); }
+
+    #meter { height: 4px; margin-top: 13px; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.1); }
+    #meter-fill { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .08s linear; }
+    #nitro-meter { height: 3px; margin-top: 8px; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.08); }
+    #nitro-fill { width: 100%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #7dffb3, #8ff0ff); transition: width .1s linear; }
+
+    #trip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 12px; }
+    .trip { padding-top: 9px; border-top: 1px solid rgba(255,255,255,.09); }
+    .trip b { display: block; font-size: 14px; font-variant-numeric: tabular-nums; }
+    .trip span { display: block; margin-top: 2px; font-size: 9px; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; }
+
+    #minimap-wrap {
+      position: absolute;
+      top: max(18px, env(safe-area-inset-top));
+      right: max(18px, env(safe-area-inset-right));
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      padding: 8px;
+      overflow: hidden;
+    }
+    #minimap { width: 100%; height: 100%; border-radius: 50%; display: block; }
+    #north { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 850; letter-spacing: .12em; color: rgba(255,255,255,.75); }
+
+    #objective {
+      position: absolute;
+      top: max(220px, calc(env(safe-area-inset-top) + 220px));
+      right: max(18px, env(safe-area-inset-right));
+      width: 190px;
+      padding: 12px 14px;
+      border-radius: 15px;
+      text-align: center;
+    }
+    #objective-label { color: var(--muted); font-size: 9px; letter-spacing: .16em; text-transform: uppercase; }
+    #objective-distance { margin-top: 4px; font-size: 24px; font-weight: 850; font-variant-numeric: tabular-nums; }
+    #objective-sub { margin-top: 2px; font-size: 10px; color: var(--muted); }
+
+    #controls {
+      position: absolute;
+      left: 50%;
+      bottom: max(18px, env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 11px;
+      border-radius: 14px;
+      white-space: nowrap;
+    }
+    .key { display: inline-grid; place-items: center; min-width: 27px; height: 27px; padding: 0 7px; border-radius: 7px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.08); font-size: 10px; font-weight: 800; }
+    .hint { margin-right: 5px; color: var(--muted); font-size: 10px; }
+
+    #toast {
+      position: absolute;
+      left: 50%; top: 18%;
+      transform: translate(-50%, -10px);
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      opacity: 0;
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 12;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      background: radial-gradient(circle at 50% 35%, rgba(18,33,48,.35), rgba(3,7,12,.82));
+      transition: opacity .35s ease, visibility .35s ease;
+    }
+    .overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .menu {
+      width: min(560px, 100%);
+      border-radius: 28px;
+      padding: clamp(24px, 5vw, 46px);
+      text-align: center;
+    }
+    .eyebrow { font-size: 11px; font-weight: 800; letter-spacing: .28em; color: var(--accent); text-transform: uppercase; }
+    h1 { margin: 10px 0 0; font-size: clamp(48px, 10vw, 90px); line-height: .86; letter-spacing: -.075em; }
+    .lead { max-width: 430px; margin: 20px auto 0; color: var(--muted); line-height: 1.55; font-size: 14px; }
+    .seed-row { display: flex; gap: 9px; margin: 24px auto 0; max-width: 370px; }
+    .seed-row input {
+      min-width: 0;
+      flex: 1;
+      height: 48px;
+      padding: 0 15px;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      outline: none;
+      background: rgba(255,255,255,.06);
+    }
+    .seed-row input:focus { border-color: rgba(143,240,255,.7); box-shadow: 0 0 0 3px rgba(143,240,255,.1); }
+    .primary {
+      height: 48px;
+      padding: 0 21px;
+      border: 0;
+      border-radius: 13px;
+      cursor: pointer;
+      color: #071116;
+      background: linear-gradient(135deg, #d9fbff, #83eaff);
+      font-weight: 900;
+      letter-spacing: .04em;
+      box-shadow: 0 10px 30px rgba(86,210,230,.22);
+    }
+    .primary:hover { filter: brightness(1.05); transform: translateY(-1px); }
+    .menu-notes { margin-top: 17px; color: rgba(255,255,255,.45); font-size: 10px; letter-spacing: .08em; }
+
+    #pause-menu .menu { max-width: 420px; }
+    #pause-menu h2 { margin: 8px 0 4px; font-size: 48px; letter-spacing: -.05em; }
+    #resume { margin-top: 20px; min-width: 150px; }
+
+    #touch-controls { display: none; position: fixed; inset: 0; z-index: 8; pointer-events: none; }
+    .touch-cluster { position: absolute; bottom: max(22px, env(safe-area-inset-bottom)); display: flex; gap: 12px; pointer-events: auto; }
+    .touch-cluster.left { left: max(20px, env(safe-area-inset-left)); }
+    .touch-cluster.right { right: max(20px, env(safe-area-inset-right)); }
+    .touch-btn { width: 64px; height: 64px; border-radius: 20px; border: 1px solid rgba(255,255,255,.2); background: rgba(6,12,18,.58); color: white; font-size: 22px; font-weight: 900; backdrop-filter: blur(10px); touch-action: none; }
+    .touch-btn.active { background: rgba(143,240,255,.32); border-color: rgba(143,240,255,.8); }
+
+    @media (max-width: 760px) {
+      #stats { width: 245px; }
+      #speed { font-size: 52px; }
+      #trip-grid { gap: 6px; }
+      #minimap-wrap { width: 130px; height: 130px; }
+      #objective { top: 158px; width: 130px; padding: 9px; }
+      #objective-distance { font-size: 18px; }
+      #controls { display: none; }
+    }
+
+    @media (pointer: coarse) {
+      #touch-controls { display: block; }
+      #objective { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="game"></div>
+  <div id="vignette"></div>
+
+  <div id="hud">
+    <section id="stats" class="glass">
+      <div id="brand-row">
+        <div id="brand">ENDLESS DRIVE</div>
+        <div id="weather">CLEAR · 18°C</div>
+      </div>
+      <div id="speed-row">
+        <div id="speed">000</div>
+        <div id="unit">KM/H</div>
+        <div id="gear">N</div>
+      </div>
+      <div id="meter"><div id="meter-fill"></div></div>
+      <div id="trip-grid">
+        <div class="trip"><b id="distance">0.00 km</b><span>Distance</span></div>
+        <div class="trip"><b id="beacons">0</b><span>Beacons</span></div>
+        <div class="trip"><b id="best-speed">0 km/h</b><span>Top speed</span></div>
+        <div class="trip"><b id="crashes">0</b><span>Crashes</span></div>
+        <div class="trip"><b id="drift-score">0</b><span>Drift</span></div>
+        <div class="trip"><b id="nitro-readout">100%</b><span>Nitro</span></div>
+      </div>
+      <div id="nitro-meter"><div id="nitro-fill"></div></div>
+    </section>
+
+    <section id="minimap-wrap" class="glass">
+      <canvas id="minimap" width="350" height="350"></canvas>
+      <div id="north">N</div>
+    </section>
+
+    <section id="objective" class="glass">
+      <div id="objective-label">Explorer beacon</div>
+      <div id="objective-distance">—</div>
+      <div id="objective-sub">Optional route marker</div>
+    </section>
+
+    <div id="controls" class="glass">
+      <span class="key">WASD</span><span class="hint">drive</span>
+      <span class="key">SPACE</span><span class="hint">drift</span>
+      <span class="key">SHIFT</span><span class="hint">nitro</span>
+      <span class="key">C</span><span class="hint">camera</span>
+      <span class="key">R</span><span class="hint">reset</span>
+      <span class="key">M</span><span class="hint">sound</span>
+      <span class="key">P</span><span class="hint">pause</span>
+    </div>
+
+    <div id="toast" class="glass">Beacon reached</div>
+  </div>
+
+  <div id="start-menu" class="overlay">
+    <section class="menu glass">
+      <div class="eyebrow">Procedural open-world driving</div>
+      <h1>ENDLESS<br>DRIVE</h1>
+      <p class="lead">Cruise an endless low-poly world. Hit trees and rocks with real knockback, boost with nitro, rack up drift score, and chase beacons under changing light.</p>
+      <div class="seed-row">
+        <input id="seed" value="DRIVE-2049" maxlength="32" aria-label="World seed" />
+        <button id="play" class="primary">START ENGINE</button>
+      </div>
+      <div class="menu-notes">Keyboard or touch controls · No assets or backend required</div>
+    </section>
+  </div>
+
+  <div id="pause-menu" class="overlay hidden">
+    <section class="menu glass">
+      <div class="eyebrow">Engine idling</div>
+      <h2>PAUSED</h2>
+      <p class="lead">Press P or continue below.</p>
+      <button id="resume" class="primary">CONTINUE</button>
+    </section>
+  </div>
+
+  <div id="touch-controls" aria-hidden="true">
+    <div class="touch-cluster left">
+      <button class="touch-btn" data-key="KeyA">◀</button>
+      <button class="touch-btn" data-key="KeyD">▶</button>
+    </div>
+    <div class="touch-cluster right">
+      <button class="touch-btn" data-key="KeyS">▼</button>
+      <button class="touch-btn" data-key="KeyW">▲</button>
+      <button class="touch-btn" data-key="ShiftLeft" style="font-size:11px;letter-spacing:.04em">N₂</button>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.module.js"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+
+    const game = document.querySelector('#game');
+    const hud = document.querySelector('#hud');
+    const startMenu = document.querySelector('#start-menu');
+    const pauseMenu = document.querySelector('#pause-menu');
+    const playButton = document.querySelector('#play');
+    const resumeButton = document.querySelector('#resume');
+    const seedInput = document.querySelector('#seed');
+    const speedEl = document.querySelector('#speed');
+    const gearEl = document.querySelector('#gear');
+    const meterFill = document.querySelector('#meter-fill');
+    const distanceEl = document.querySelector('#distance');
+    const beaconsEl = document.querySelector('#beacons');
+    const bestSpeedEl = document.querySelector('#best-speed');
+    const crashesEl = document.querySelector('#crashes');
+    const driftScoreEl = document.querySelector('#drift-score');
+    const nitroReadoutEl = document.querySelector('#nitro-readout');
+    const nitroFill = document.querySelector('#nitro-fill');
+    const objectiveDistanceEl = document.querySelector('#objective-distance');
+    const toastEl = document.querySelector('#toast');
+    const minimap = document.querySelector('#minimap');
+    const mapCtx = minimap.getContext('2d');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x9cc9e5);
+    scene.fog = new THREE.FogExp2(0x9cc9e5, 0.0017);
+
+    const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.1, 2200);
+    camera.position.set(0, 8, -13);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.domElement.className = 'webgl';
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.8));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.04;
+    game.appendChild(renderer.domElement);
+
+    const hemi = new THREE.HemisphereLight(0xdcefff, 0x405033, 2.1);
+    scene.add(hemi);
+
+    const sunLight = new THREE.DirectionalLight(0xfff0ce, 3.2);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.set(2048, 2048);
+    sunLight.shadow.camera.left = -80;
+    sunLight.shadow.camera.right = 80;
+    sunLight.shadow.camera.top = 80;
+    sunLight.shadow.camera.bottom = -80;
+    sunLight.shadow.camera.near = 1;
+    sunLight.shadow.camera.far = 260;
+    sunLight.shadow.bias = -0.0004;
+    scene.add(sunLight);
+
+    const sky = new THREE.Mesh(
+      new THREE.SphereGeometry(1100, 32, 18),
+      new THREE.ShaderMaterial({
+        side: THREE.BackSide,
+        depthWrite: false,
+        uniforms: {
+          topColor: { value: new THREE.Color(0x4c8dbd) },
+          bottomColor: { value: new THREE.Color(0xe7cba0) },
+          offset: { value: 75 },
+          exponent: { value: 0.72 }
+        },
+        vertexShader: `varying vec3 vWorldPosition; void main(){ vec4 worldPosition = modelMatrix * vec4(position,1.0); vWorldPosition = worldPosition.xyz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+        fragmentShader: `uniform vec3 topColor; uniform vec3 bottomColor; uniform float offset; uniform float exponent; varying vec3 vWorldPosition; void main(){ float h = normalize(vWorldPosition + vec3(0.0,offset,0.0)).y; gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h,0.0), exponent),0.0)),1.0); }`
+      })
+    );
+    scene.add(sky);
+
+    const sunMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(14, 18, 18),
+      new THREE.MeshBasicMaterial({ color: 0xffe4a7, fog: false })
+    );
+    scene.add(sunMesh);
+
+    const water = new THREE.Mesh(
+      new THREE.PlaneGeometry(5000, 5000),
+      new THREE.MeshStandardMaterial({ color: 0x3d86a8, roughness: 0.18, metalness: 0.1, transparent: true, opacity: 0.72 })
+    );
+    water.rotation.x = -Math.PI / 2;
+    water.position.y = -7.5;
+    water.receiveShadow = true;
+    scene.add(water);
+
+    const WORLD = {
+      seed: 1,
+      chunkSize: 150,
+      chunkResolution: 32,
+      radius: 2,
+      chunks: new Map(),
+      lastChunkX: Infinity,
+      lastChunkZ: Infinity
+    };
+
+    const input = Object.create(null);
+    let running = false;
+    let paused = false;
+    let cameraMode = 0;
+    let soundEnabled = true;
+    let audio = null;
+    let toastTimer = 0;
+    let totalDistance = 0;
+    let topSpeed = 0;
+    let collectedBeacons = 0;
+    let crashCount = 0;
+    let driftScore = 0;
+    let dayClock = 0.23;
+    let cameraShake = 0;
+    let impactCooldown = 0;
+
+    function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    function smooth(t) { return t * t * (3 - 2 * t); }
+
+    function seedFromString(text) {
+      let hash = 2166136261;
+      for (let i = 0; i < text.length; i++) {
+        hash ^= text.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return hash >>> 0 || 1;
+    }
+
+    function hash2(x, z) {
+      let h = Math.imul(x | 0, 374761393) ^ Math.imul(z | 0, 668265263) ^ Math.imul(WORLD.seed, 1442695041);
+      h = Math.imul(h ^ (h >>> 13), 1274126177);
+      return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+    }
+
+    function valueNoise(x, z) {
+      const x0 = Math.floor(x);
+      const z0 = Math.floor(z);
+      const tx = smooth(x - x0);
+      const tz = smooth(z - z0);
+      const a = hash2(x0, z0);
+      const b = hash2(x0 + 1, z0);
+      const c = hash2(x0, z0 + 1);
+      const d = hash2(x0 + 1, z0 + 1);
+      return lerp(lerp(a, b, tx), lerp(c, d, tx), tz);
+    }
+
+    function fbm(x, z, octaves = 5) {
+      let value = 0;
+      let amplitude = 0.5;
+      let frequency = 1;
+      let normalizer = 0;
+      for (let i = 0; i < octaves; i++) {
+        value += valueNoise(x * frequency, z * frequency) * amplitude;
+        normalizer += amplitude;
+        amplitude *= 0.5;
+        frequency *= 2.02;
+      }
+      return value / normalizer;
+    }
+
+    function terrainHeight(x, z) {
+      const macro = (fbm(x * 0.0022 + 11.7, z * 0.0022 - 8.1, 5) - 0.5) * 30;
+      const rolling = (fbm(x * 0.0068 - 31.2, z * 0.0068 + 17.4, 4) - 0.5) * 11;
+      const detail = (fbm(x * 0.021 + 5.5, z * 0.021 + 2.2, 3) - 0.5) * 2.4;
+      const ridgeNoise = Math.abs(fbm(x * 0.0041 + 70, z * 0.0041 - 60, 4) - 0.5);
+      const ridges = Math.pow(ridgeNoise * 2, 2.3) * 6.5;
+      const natural = macro + rolling + detail + ridges + 2.5;
+      const spawnBlend = smooth(clamp(Math.hypot(x, z) / 105, 0, 1));
+      return lerp(1.2 + Math.sin(x * 0.025) * 0.25, natural, spawnBlend);
+    }
+
+    function terrainSlope(x, z) {
+      const e = 2.4;
+      const dx = terrainHeight(x + e, z) - terrainHeight(x - e, z);
+      const dz = terrainHeight(x, z + e) - terrainHeight(x, z - e);
+      return Math.hypot(dx, dz) / (e * 2);
+    }
+
+    function mulberry32(seed) {
+      return function() {
+        let t = seed += 0x6D2B79F5;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    const terrainMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.97, metalness: 0.0 });
+    const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x5a3c27, roughness: 1 });
+    const leafMaterial = new THREE.MeshStandardMaterial({ color: 0x2d6842, roughness: 0.95 });
+    const rockMaterial = new THREE.MeshStandardMaterial({ color: 0x757a78, roughness: 1 });
+    const trunkGeometry = new THREE.CylinderGeometry(0.34, 0.47, 3.2, 6);
+    const leafGeometry = new THREE.ConeGeometry(1.75, 4.7, 7);
+    const rockGeometry = new THREE.DodecahedronGeometry(1.25, 0);
+    const dummy = new THREE.Object3D();
+
+    function terrainColor(height, slope) {
+      const color = new THREE.Color();
+      if (height < -5.2) color.set(0x8f9270);
+      else if (slope > 0.9) color.set(0x6f7168);
+      else if (height > 20) color.set(0xb8b5a7);
+      else if (height > 10) color.set(0x6f8052);
+      else color.set(0x4f7d45);
+      const variation = (hash2(Math.floor(height * 7), Math.floor(slope * 30)) - 0.5) * 0.07;
+      color.offsetHSL(0, 0, variation);
+      return color;
+    }
+
+    function createChunk(cx, cz) {
+      const size = WORLD.chunkSize;
+      const resolution = WORLD.chunkResolution;
+      const geometry = new THREE.PlaneGeometry(size, size, resolution, resolution);
+      geometry.rotateX(-Math.PI / 2);
+      const positions = geometry.attributes.position;
+      const colors = new Float32Array(positions.count * 3);
+      const worldCenterX = cx * size;
+      const worldCenterZ = cz * size;
+
+      for (let i = 0; i < positions.count; i++) {
+        const wx = positions.getX(i) + worldCenterX;
+        const wz = positions.getZ(i) + worldCenterZ;
+        const h = terrainHeight(wx, wz);
+        positions.setY(i, h);
+        const color = terrainColor(h, terrainSlope(wx, wz));
+        colors[i * 3] = color.r;
+        colors[i * 3 + 1] = color.g;
+        colors[i * 3 + 2] = color.b;
+      }
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geometry.computeVertexNormals();
+
+      const group = new THREE.Group();
+      group.position.set(worldCenterX, 0, worldCenterZ);
+
+      const terrain = new THREE.Mesh(geometry, terrainMaterial);
+      terrain.receiveShadow = true;
+      group.add(terrain);
+
+      const rng = mulberry32((WORLD.seed ^ Math.imul(cx + 8000, 73856093) ^ Math.imul(cz + 8000, 19349663)) >>> 0);
+      const treeCount = 10 + Math.floor(rng() * 8);
+      const rockCount = 4 + Math.floor(rng() * 6);
+      const trunks = new THREE.InstancedMesh(trunkGeometry, trunkMaterial, treeCount);
+      const leaves = new THREE.InstancedMesh(leafGeometry, leafMaterial, treeCount);
+      const rocks = new THREE.InstancedMesh(rockGeometry, rockMaterial, rockCount);
+      trunks.castShadow = true;
+      leaves.castShadow = true;
+      rocks.castShadow = true;
+      rocks.receiveShadow = true;
+
+      let treeIndex = 0;
+      let attempts = 0;
+      const obstacles = [];
+      while (treeIndex < treeCount && attempts++ < treeCount * 12) {
+        const lx = (rng() - 0.5) * (size - 10);
+        const lz = (rng() - 0.5) * (size - 10);
+        const wx = worldCenterX + lx;
+        const wz = worldCenterZ + lz;
+        const h = terrainHeight(wx, wz);
+        const slope = terrainSlope(wx, wz);
+        if (Math.hypot(wx, wz) < 34 || h < -5 || slope > 0.72) continue;
+        const scale = 0.72 + rng() * 0.8;
+        const rotation = rng() * Math.PI * 2;
+        dummy.position.set(lx, h + 1.6 * scale, lz);
+        dummy.rotation.set(0, rotation, 0);
+        dummy.scale.set(scale, scale, scale);
+        dummy.updateMatrix();
+        trunks.setMatrixAt(treeIndex, dummy.matrix);
+        dummy.position.y = h + 4.45 * scale;
+        dummy.rotation.y = rotation + 0.4;
+        dummy.updateMatrix();
+        leaves.setMatrixAt(treeIndex, dummy.matrix);
+        obstacles.push({
+          type: 'tree',
+          lx, lz, wx, wz,
+          baseY: h,
+          radius: 0.85 * scale,
+          scale,
+          rotY: rotation,
+          trunkIndex: treeIndex,
+          leafIndex: treeIndex,
+          knocked: false,
+          tip: 0,
+          tipDirX: 0,
+          tipDirZ: 1,
+        });
+        treeIndex++;
+      }
+      trunks.count = treeIndex;
+      leaves.count = treeIndex;
+
+      let rockIndex = 0;
+      attempts = 0;
+      while (rockIndex < rockCount && attempts++ < rockCount * 10) {
+        const lx = (rng() - 0.5) * (size - 8);
+        const lz = (rng() - 0.5) * (size - 8);
+        const wx = worldCenterX + lx;
+        const wz = worldCenterZ + lz;
+        const h = terrainHeight(wx, wz);
+        if (Math.hypot(wx, wz) < 25 || h < -5) continue;
+        const sx = 0.45 + rng() * 1.25;
+        const sy = sx * (0.55 + rng() * 0.4);
+        const sz = sx * (0.8 + rng() * 0.5);
+        const rx = rng() * 0.8;
+        const ry = rng() * Math.PI * 2;
+        const rz = rng() * 0.8;
+        dummy.position.set(lx, h + sy * 0.48, lz);
+        dummy.rotation.set(rx, ry, rz);
+        dummy.scale.set(sx, sy, sz);
+        dummy.updateMatrix();
+        rocks.setMatrixAt(rockIndex, dummy.matrix);
+        obstacles.push({
+          type: 'rock',
+          lx, lz, wx, wz,
+          baseY: h,
+          radius: 0.9 * Math.max(sx, sz),
+          sx, sy, sz,
+          rx, ry, rz,
+          rockIndex,
+          vx: 0,
+          vz: 0,
+          spin: 0,
+        });
+        rockIndex++;
+      }
+      rocks.count = rockIndex;
+
+      group.add(trunks, leaves, rocks);
+      scene.add(group);
+      WORLD.chunks.set(`${cx},${cz}`, { group, geometry, trunks, leaves, rocks, obstacles, cx, cz });
+    }
+
+    function disposeChunk(key) {
+      const chunk = WORLD.chunks.get(key);
+      if (!chunk) return;
+      scene.remove(chunk.group);
+      chunk.geometry.dispose();
+      WORLD.chunks.delete(key);
+    }
+
+    function updateChunks(force = false) {
+      const cx = Math.round(car.position.x / WORLD.chunkSize);
+      const cz = Math.round(car.position.z / WORLD.chunkSize);
+      if (!force && cx === WORLD.lastChunkX && cz === WORLD.lastChunkZ) return;
+      WORLD.lastChunkX = cx;
+      WORLD.lastChunkZ = cz;
+
+      const needed = new Set();
+      for (let x = cx - WORLD.radius; x <= cx + WORLD.radius; x++) {
+        for (let z = cz - WORLD.radius; z <= cz + WORLD.radius; z++) {
+          const key = `${x},${z}`;
+          needed.add(key);
+          if (!WORLD.chunks.has(key)) createChunk(x, z);
+        }
+      }
+      for (const key of WORLD.chunks.keys()) if (!needed.has(key)) disposeChunk(key);
+    }
+
+    function createCar() {
+      const root = new THREE.Group();
+      const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xe9d54d, roughness: 0.42, metalness: 0.2 });
+      const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x111820, roughness: 0.55, metalness: 0.25 });
+      const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x7db2cf, roughness: 0.12, metalness: 0.15, transparent: true, opacity: 0.72 });
+      const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xf7fbff, emissive: 0xcbe9ff, emissiveIntensity: 3 });
+      const tailMaterial = new THREE.MeshStandardMaterial({ color: 0xff3c2f, emissive: 0xff1500, emissiveIntensity: 2.2 });
+
+      const body = new THREE.Mesh(new THREE.BoxGeometry(2.35, 0.62, 4.25), bodyMaterial);
+      body.position.y = 0.26;
+      body.castShadow = true;
+      root.add(body);
+
+      const hood = new THREE.Mesh(new THREE.BoxGeometry(2.12, 0.32, 1.15), bodyMaterial);
+      hood.position.set(0, 0.64, 1.35);
+      hood.castShadow = true;
+      root.add(hood);
+
+      const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.82, 0.86, 1.95), glassMaterial);
+      cabin.position.set(0, 0.92, -0.25);
+      cabin.scale.set(1, 1, 0.92);
+      cabin.castShadow = true;
+      root.add(cabin);
+
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(1.76, 0.12, 1.45), darkMaterial);
+      roof.position.set(0, 1.39, -0.34);
+      roof.castShadow = true;
+      root.add(roof);
+
+      const bumperFront = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.22, 0.22), darkMaterial);
+      bumperFront.position.set(0, 0.05, 2.2);
+      root.add(bumperFront);
+      const bumperRear = bumperFront.clone();
+      bumperRear.position.z = -2.2;
+      root.add(bumperRear);
+
+      for (const x of [-0.72, 0.72]) {
+        const headlight = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.22, 0.08), lightMaterial);
+        headlight.position.set(x, 0.48, 2.17);
+        root.add(headlight);
+        const tail = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.22, 0.08), tailMaterial);
+        tail.position.set(x, 0.47, -2.17);
+        root.add(tail);
+      }
+
+      const wheelGeometry = new THREE.CylinderGeometry(0.46, 0.46, 0.36, 14);
+      wheelGeometry.rotateZ(Math.PI / 2);
+      const wheels = [];
+      const frontWheels = [];
+      for (const z of [-1.35, 1.35]) {
+        for (const x of [-1.15, 1.15]) {
+          const pivot = new THREE.Group();
+          pivot.position.set(x, -0.32, z);
+          const wheel = new THREE.Mesh(wheelGeometry, darkMaterial);
+          wheel.castShadow = true;
+          pivot.add(wheel);
+          root.add(pivot);
+          wheels.push(wheel);
+          if (z > 0) frontWheels.push(pivot);
+        }
+      }
+
+      const shadow = new THREE.Mesh(
+        new THREE.CircleGeometry(1.65, 24),
+        new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22, depthWrite: false })
+      );
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.position.y = -0.76;
+      shadow.scale.z = 1.65;
+      root.add(shadow);
+
+      root.userData = { wheels, frontWheels };
+      scene.add(root);
+      return root;
+    }
+
+    const carMesh = createCar();
+    const car = {
+      position: new THREE.Vector3(0, terrainHeight(0, 0) + 1.15, 0),
+      speed: 0,
+      verticalVelocity: 0,
+      heading: 0,
+      travelHeading: 0,
+      driftAmount: 0,
+      grounded: true,
+      wheelSpin: 0,
+      nitro: 1,
+      lastSafe: new THREE.Vector3(0, terrainHeight(0, 0) + 1.15, 0)
+    };
+    carMesh.position.copy(car.position);
+
+    const headlightL = new THREE.SpotLight(0xfff2d0, 0, 55, Math.PI / 5.5, 0.45, 1.2);
+    const headlightR = new THREE.SpotLight(0xfff2d0, 0, 55, Math.PI / 5.5, 0.45, 1.2);
+    headlightL.castShadow = false;
+    headlightR.castShadow = false;
+    scene.add(headlightL, headlightR, headlightL.target, headlightR.target);
+
+    const beacon = new THREE.Group();
+    const beaconRing = new THREE.Mesh(
+      new THREE.TorusGeometry(4.4, 0.28, 12, 38),
+      new THREE.MeshStandardMaterial({ color: 0x8ff0ff, emissive: 0x29bad2, emissiveIntensity: 4.5, roughness: 0.2 })
+    );
+    beaconRing.rotation.x = Math.PI / 2;
+    const beaconCore = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.22, 0.9, 9, 10, 1, true),
+      new THREE.MeshBasicMaterial({ color: 0x9df5ff, transparent: true, opacity: 0.4, side: THREE.DoubleSide, depthWrite: false })
+    );
+    beacon.add(beaconRing, beaconCore);
+    scene.add(beacon);
+
+    function spawnBeacon(initial = false) {
+      const rng = mulberry32((WORLD.seed + collectedBeacons * 92821 + (initial ? 13 : 0)) >>> 0);
+      const distance = initial ? 150 : 220 + rng() * 260;
+      const angle = car.heading + (rng() - 0.5) * Math.PI * 1.6;
+      const x = car.position.x + Math.sin(angle) * distance;
+      const z = car.position.z + Math.cos(angle) * distance;
+      beacon.position.set(x, terrainHeight(x, z) + 5.3, z);
+    }
+
+    const dustCount = 100;
+    const dustPositions = new Float32Array(dustCount * 3);
+    const dustLife = new Float32Array(dustCount);
+    const dustVelocity = Array.from({ length: dustCount }, () => new THREE.Vector3());
+    const dustGeometry = new THREE.BufferGeometry();
+    dustGeometry.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
+    const dustMaterial = new THREE.PointsMaterial({ color: 0xc9b993, size: 1.2, transparent: true, opacity: 0.38, depthWrite: false, sizeAttenuation: true });
+    const dust = new THREE.Points(dustGeometry, dustMaterial);
+    scene.add(dust);
+    let dustCursor = 0;
+
+    function emitDust(dt) {
+      if (!car.grounded || Math.abs(car.speed) < 6) return;
+      const drifting = !!input.Space && Math.abs(car.speed) > 5;
+      const amount = drifting ? 10 : 2;
+      const forward = new THREE.Vector3(Math.sin(car.travelHeading), 0, Math.cos(car.travelHeading));
+      const right = new THREE.Vector3(forward.z, 0, -forward.x);
+      for (let j = 0; j < amount; j++) {
+        const i = dustCursor++ % dustCount;
+        const behind = forward.clone().multiplyScalar(-1.8 - Math.random() * 0.8);
+        const side = right.clone().multiplyScalar((Math.random() - 0.5) * (drifting ? 2.8 : 1.7));
+        const p = car.position.clone().add(behind).add(side);
+        p.y = terrainHeight(p.x, p.z) + 0.18;
+        dustPositions[i * 3] = p.x;
+        dustPositions[i * 3 + 1] = p.y;
+        dustPositions[i * 3 + 2] = p.z;
+        dustVelocity[i]
+          .set((Math.random() - 0.5) * (drifting ? 3.2 : 1.2), 0.7 + Math.random() * 1.2, (Math.random() - 0.5) * (drifting ? 3.2 : 1.2))
+          .addScaledVector(forward, -Math.abs(car.speed) * (drifting ? 0.14 : 0.08))
+          .addScaledVector(right, (Math.random() - 0.5) * (drifting ? 4 : 0));
+        dustLife[i] = drifting ? 0.75 + Math.random() * 0.55 : 0.55 + Math.random() * 0.7;
+      }
+      dustGeometry.attributes.position.needsUpdate = true;
+      if (drifting) dustMaterial.color.setHex(0xe8dcc0);
+      else dustMaterial.color.setHex(0xc9b993);
+    }
+
+    function updateDust(dt) {
+      for (let i = 0; i < dustCount; i++) {
+        if (dustLife[i] <= 0) continue;
+        dustLife[i] -= dt;
+        dustPositions[i * 3] += dustVelocity[i].x * dt;
+        dustPositions[i * 3 + 1] += dustVelocity[i].y * dt;
+        dustPositions[i * 3 + 2] += dustVelocity[i].z * dt;
+        dustVelocity[i].y += 0.15 * dt;
+      }
+      dustGeometry.attributes.position.needsUpdate = true;
+    }
+
+    function initAudio() {
+      if (audio) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const context = new AudioContext();
+      const master = context.createGain();
+      master.gain.value = 0.13;
+      master.connect(context.destination);
+      const lowpass = context.createBiquadFilter();
+      lowpass.type = 'lowpass';
+      lowpass.frequency.value = 260;
+      lowpass.Q.value = 1.1;
+      lowpass.connect(master);
+      const osc1 = context.createOscillator();
+      const osc2 = context.createOscillator();
+      const gain1 = context.createGain();
+      const gain2 = context.createGain();
+      osc1.type = 'sawtooth';
+      osc2.type = 'square';
+      gain1.gain.value = 0.36;
+      gain2.gain.value = 0.08;
+      osc1.connect(gain1).connect(lowpass);
+      osc2.connect(gain2).connect(lowpass);
+      osc1.start();
+      osc2.start();
+      audio = { context, master, lowpass, osc1, osc2 };
+    }
+
+    function updateAudio() {
+      if (!audio) return;
+      const now = audio.context.currentTime;
+      const rpm = clamp(Math.abs(car.speed) / 42, 0, 1);
+      const base = 42 + rpm * 115;
+      audio.osc1.frequency.setTargetAtTime(base, now, 0.05);
+      audio.osc2.frequency.setTargetAtTime(base * 0.5, now, 0.05);
+      audio.lowpass.frequency.setTargetAtTime(170 + rpm * 520, now, 0.08);
+      audio.master.gain.setTargetAtTime(soundEnabled && running && !paused ? 0.12 : 0.0001, now, 0.08);
+    }
+
+    function resetCar(useSafe = false) {
+      const target = useSafe ? car.lastSafe : new THREE.Vector3(0, 0, 0);
+      car.position.set(target.x, terrainHeight(target.x, target.z) + 1.15, target.z);
+      car.speed = 0;
+      car.verticalVelocity = 0;
+      car.heading = useSafe ? car.heading : 0;
+      car.travelHeading = car.heading;
+      car.driftAmount = 0;
+      car.grounded = true;
+      car.nitro = Math.max(car.nitro, 0.35);
+      carMesh.position.copy(car.position);
+      updateChunks(true);
+    }
+
+    function shortestAngle(from, to) {
+      let delta = (to - from) % (Math.PI * 2);
+      if (delta > Math.PI) delta -= Math.PI * 2;
+      if (delta < -Math.PI) delta += Math.PI * 2;
+      return delta;
+    }
+
+    function lerpAngle(from, to, t) {
+      return from + shortestAngle(from, to) * clamp(t, 0, 1);
+    }
+
+    function emitImpactSparks(origin, count = 8) {
+      const forward = new THREE.Vector3(Math.sin(car.heading), 0, Math.cos(car.heading));
+      for (let j = 0; j < count; j++) {
+        const i = dustCursor++ % dustCount;
+        dustPositions[i * 3] = origin.x + (Math.random() - 0.5) * 1.2;
+        dustPositions[i * 3 + 1] = origin.y + 0.4 + Math.random() * 0.8;
+        dustPositions[i * 3 + 2] = origin.z + (Math.random() - 0.5) * 1.2;
+        dustVelocity[i].set(
+          (Math.random() - 0.5) * 8 - forward.x * Math.abs(car.speed) * 0.15,
+          2 + Math.random() * 4,
+          (Math.random() - 0.5) * 8 - forward.z * Math.abs(car.speed) * 0.15,
+        );
+        dustLife[i] = 0.35 + Math.random() * 0.4;
+      }
+      dustGeometry.attributes.position.needsUpdate = true;
+      dustMaterial.color.setHex(0xffd27a);
+      setTimeout(() => dustMaterial.color.setHex(0xc9b993), 280);
+    }
+
+    function syncTreeMatrices(chunk, obstacle) {
+      const tip = obstacle.tip;
+      const fallLen = Math.hypot(obstacle.tipDirX, obstacle.tipDirZ) || 1;
+      const fallX = obstacle.tipDirX / fallLen;
+      const fallZ = obstacle.tipDirZ / fallLen;
+      const axis = new THREE.Vector3(fallZ, 0, -fallX);
+      const angle = tip * (Math.PI / 2) * 0.92;
+      const h = obstacle.baseY;
+      const scale = obstacle.scale;
+
+      dummy.position.set(obstacle.lx, h + 1.6 * scale, obstacle.lz);
+      dummy.quaternion.identity();
+      dummy.rotateY(obstacle.rotY);
+      dummy.rotateOnAxis(axis, angle);
+      dummy.scale.set(scale, scale, scale);
+      dummy.updateMatrix();
+      chunk.trunks.setMatrixAt(obstacle.trunkIndex, dummy.matrix);
+
+      dummy.position.set(obstacle.lx, h + 4.45 * scale, obstacle.lz);
+      dummy.quaternion.identity();
+      dummy.rotateY(obstacle.rotY + 0.4);
+      dummy.rotateOnAxis(axis, angle);
+      dummy.scale.set(scale, scale, scale);
+      dummy.updateMatrix();
+      chunk.leaves.setMatrixAt(obstacle.leafIndex, dummy.matrix);
+    }
+
+    function syncRockMatrix(chunk, obstacle) {
+      const h = terrainHeight(obstacle.wx, obstacle.wz);
+      obstacle.baseY = h;
+      const size = WORLD.chunkSize;
+      obstacle.lx = obstacle.wx - chunk.cx * size;
+      obstacle.lz = obstacle.wz - chunk.cz * size;
+      dummy.position.set(obstacle.lx, h + obstacle.sy * 0.48, obstacle.lz);
+      dummy.rotation.set(obstacle.rx + obstacle.spin * 0.4, obstacle.ry + obstacle.spin, obstacle.rz);
+      dummy.scale.set(obstacle.sx, obstacle.sy, obstacle.sz);
+      dummy.updateMatrix();
+      chunk.rocks.setMatrixAt(obstacle.rockIndex, dummy.matrix);
+      chunk.rocks.instanceMatrix.needsUpdate = true;
+    }
+
+    function resolveObstacleCollisions() {
+      if (impactCooldown > 0) return;
+      const carRadius = 1.55;
+      const carX = car.position.x;
+      const carZ = car.position.z;
+
+      for (const chunk of WORLD.chunks.values()) {
+        for (const obstacle of chunk.obstacles) {
+          if (obstacle.type === 'tree' && obstacle.knocked && obstacle.tip > 0.85) continue;
+
+          const dx = carX - obstacle.wx;
+          const dz = carZ - obstacle.wz;
+          const dist = Math.hypot(dx, dz);
+          const minDist = carRadius + obstacle.radius;
+          if (dist >= minDist || dist < 1e-4) continue;
+
+          const nx = dx / dist;
+          const nz = dz / dist;
+          const overlap = minDist - dist;
+          car.position.x += nx * overlap;
+          car.position.z += nz * overlap;
+
+          const impactSpeed = Math.abs(car.speed);
+          const push = Math.max(impactSpeed, 4);
+          car.speed *= obstacle.type === 'rock' ? -0.28 : -0.42;
+          car.heading += (Math.random() - 0.5) * 0.18;
+          cameraShake = Math.min(1, 0.25 + impactSpeed / 50);
+          impactCooldown = 0.18;
+          crashCount++;
+          crashesEl.textContent = String(crashCount);
+          emitImpactSparks(car.position.clone().setY(car.position.y + 0.5), 12);
+
+          if (obstacle.type === 'tree') {
+            if (impactSpeed > 10 && !obstacle.knocked) {
+              obstacle.knocked = true;
+              obstacle.tipDirX = -nx;
+              obstacle.tipDirZ = -nz;
+              showToast(impactSpeed > 22 ? 'Tree flattened' : 'Tree hit');
+            } else if (impactSpeed > 4) {
+              showToast('Tree bump');
+            }
+          } else if (obstacle.type === 'rock') {
+            const transfer = push * 0.55;
+            obstacle.vx += -nx * transfer;
+            obstacle.vz += -nz * transfer;
+            obstacle.spin += (Math.random() - 0.5) * transfer * 0.25;
+            showToast(impactSpeed > 18 ? 'Rock smashed aside' : 'Rock hit');
+          }
+          return;
+        }
+      }
+    }
+
+    function updateObstacles(dt) {
+      for (const chunk of WORLD.chunks.values()) {
+        let treesDirty = false;
+        let rocksDirty = false;
+        for (const obstacle of chunk.obstacles) {
+          if (obstacle.type === 'tree' && obstacle.knocked && obstacle.tip < 1) {
+            obstacle.tip = Math.min(1, obstacle.tip + dt * 2.4);
+            syncTreeMatrices(chunk, obstacle);
+            treesDirty = true;
+          }
+          if (obstacle.type === 'rock') {
+            const speed = Math.hypot(obstacle.vx, obstacle.vz);
+            if (speed > 0.05 || Math.abs(obstacle.spin) > 0.01) {
+              obstacle.wx += obstacle.vx * dt;
+              obstacle.wz += obstacle.vz * dt;
+              obstacle.vx *= Math.exp(-2.8 * dt);
+              obstacle.vz *= Math.exp(-2.8 * dt);
+              obstacle.spin *= Math.exp(-1.6 * dt);
+              if (Math.hypot(obstacle.vx, obstacle.vz) < 0.08) {
+                obstacle.vx = 0;
+                obstacle.vz = 0;
+              }
+              syncRockMatrix(chunk, obstacle);
+              rocksDirty = true;
+            }
+          }
+        }
+        if (treesDirty) chunk.trunks.instanceMatrix.needsUpdate = true;
+        if (rocksDirty) chunk.rocks.instanceMatrix.needsUpdate = true;
+      }
+    }
+
+    const targetQuaternion = new THREE.Quaternion();
+    const targetEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+    const cameraTarget = new THREE.Vector3();
+    const desiredCamera = new THREE.Vector3();
+    const lookTarget = new THREE.Vector3();
+
+    function updateCar(dt) {
+      impactCooldown = Math.max(0, impactCooldown - dt);
+      cameraShake = Math.max(0, cameraShake - dt * 1.8);
+
+      const throttle = input.KeyW || input.ArrowUp ? 1 : 0;
+      const brake = input.KeyS || input.ArrowDown ? 1 : 0;
+      // A = left, D = right
+      const steer = (input.KeyA || input.ArrowLeft ? 1 : 0) - (input.KeyD || input.ArrowRight ? 1 : 0);
+      const handbrake = !!input.Space;
+      const nitroHeld = !!(input.ShiftLeft || input.ShiftRight);
+      const previous = car.position.clone();
+
+      const boosting = nitroHeld && car.nitro > 0.02 && throttle && car.grounded && car.speed >= 0;
+      if (boosting) {
+        car.nitro = Math.max(0, car.nitro - dt * 0.28);
+        car.speed += 22 * dt;
+      } else {
+        car.nitro = Math.min(1, car.nitro + dt * 0.085);
+      }
+
+      // Power slide: keep momentum while Space is held
+      if (throttle) {
+        const accel = handbrake && car.speed > 0 ? 10.5 : car.speed < 0 ? 25 : 14.5;
+        car.speed += accel * dt;
+      } else if (brake) {
+        car.speed -= (car.speed > 0 ? 28 : 9.5) * dt;
+      } else if (!handbrake) {
+        const drag = car.grounded ? 0.55 : 0.08;
+        car.speed *= Math.exp(-drag * dt);
+        if (Math.abs(car.speed) < 0.035) car.speed = 0;
+      } else {
+        // Light bleed only — don't kill the slide
+        car.speed *= Math.exp(-0.22 * dt);
+      }
+
+      car.speed = clamp(car.speed, -13, boosting ? 58 : handbrake ? 52 : 46);
+
+      const speedRatio = clamp(Math.abs(car.speed) / 30, 0, 1);
+      const steerAuthority = clamp(Math.abs(car.speed) / 2.2, 0, 1);
+      const direction = car.speed >= 0 ? 1 : -1;
+      const yawRate = handbrake
+        ? (1.35 + speedRatio * 1.55)
+        : (0.5 + speedRatio * 0.8);
+      car.heading += steer * direction * yawRate * steerAuthority * dt;
+
+      // Grip: travel direction follows nose tightly when gripping, lags hard while drifting
+      if (car.grounded) {
+        if (handbrake && Math.abs(car.speed) > 4) {
+          // Kick sideways into the turn so the rear breaks out
+          if (Math.abs(steer) > 0) {
+            car.travelHeading += -steer * direction * (0.85 + speedRatio * 0.9) * dt;
+          }
+          const grip = 0.4 + speedRatio * 0.7; // low catch-up = long slide
+          car.travelHeading = lerpAngle(car.travelHeading, car.heading, 1 - Math.exp(-grip * dt));
+          const maxSlip = 1.05 + speedRatio * 0.4;
+          const nowSlip = shortestAngle(car.travelHeading, car.heading);
+          if (Math.abs(nowSlip) > maxSlip) {
+            car.travelHeading = car.heading - Math.sign(nowSlip) * maxSlip;
+          }
+        } else {
+          car.travelHeading = lerpAngle(car.travelHeading, car.heading, 1 - Math.exp(-14 * dt));
+        }
+      } else {
+        car.travelHeading = lerpAngle(car.travelHeading, car.heading, 1 - Math.exp(-3 * dt));
+      }
+
+      const liveSlip = Math.abs(shortestAngle(car.travelHeading, car.heading));
+      car.driftAmount = handbrake && Math.abs(car.speed) > 5
+        ? lerp(car.driftAmount, clamp(Math.max(liveSlip / 0.55, 0.35), 0.35, 1.5), 1 - Math.exp(-8 * dt))
+        : lerp(car.driftAmount, 0, 1 - Math.exp(-10 * dt));
+
+      if (handbrake && car.grounded && Math.abs(car.speed) > 5) {
+        const points = (10 + Math.abs(car.speed) * 2.2 + liveSlip * 32 + Math.abs(steer) * 12 + car.driftAmount * 8) * dt;
+        driftScore += Math.max(1, Math.floor(points));
+        driftScoreEl.textContent = String(driftScore);
+      }
+
+      const forwardX = Math.sin(car.travelHeading);
+      const forwardZ = Math.cos(car.travelHeading);
+      const faceX = Math.sin(car.heading);
+      const faceZ = Math.cos(car.heading);
+      const currentGround = terrainHeight(car.position.x, car.position.z);
+      const aheadGround = terrainHeight(car.position.x + faceX * 3, car.position.z + faceZ * 3);
+      const climb = (aheadGround - currentGround) / 3;
+      if (car.grounded && car.speed > 0 && !handbrake) car.speed -= clamp(climb, -0.5, 0.8) * 7.5 * dt;
+
+      car.position.x += forwardX * car.speed * dt;
+      car.position.z += forwardZ * car.speed * dt;
+
+      resolveObstacleCollisions();
+
+      const groundY = terrainHeight(car.position.x, car.position.z) + 1.0;
+
+      if (car.position.y <= groundY + 0.1) {
+        if (car.verticalVelocity < -8) showToast('Hard landing');
+        car.position.y = groundY;
+        car.verticalVelocity = 0;
+        car.grounded = true;
+      } else {
+        car.verticalVelocity -= 20 * dt;
+        car.position.y += car.verticalVelocity * dt;
+        car.grounded = false;
+      }
+
+      if (car.grounded) {
+        const front = terrainHeight(car.position.x + faceX * 2.2, car.position.z + faceZ * 2.2);
+        const back = terrainHeight(car.position.x - faceX * 2.2, car.position.z - faceZ * 2.2);
+        const rightX = faceZ;
+        const rightZ = -faceX;
+        const rightH = terrainHeight(car.position.x + rightX * 1.15, car.position.z + rightZ * 1.15);
+        const leftH = terrainHeight(car.position.x - rightX * 1.15, car.position.z - rightZ * 1.15);
+        const pitch = -Math.atan2(front - back, 4.4);
+        const roll = Math.atan2(rightH - leftH, 2.3) + (handbrake ? -steer * car.driftAmount * 0.18 : 0);
+        targetEuler.set(pitch, car.heading, roll, 'YXZ');
+        targetQuaternion.setFromEuler(targetEuler);
+        carMesh.quaternion.slerp(targetQuaternion, 1 - Math.exp(-12 * dt));
+        if (terrainSlope(car.position.x, car.position.z) < 0.55 && Math.abs(car.speed) < 35 && !handbrake) {
+          car.lastSafe.copy(car.position);
+        }
+      } else {
+        targetEuler.set(clamp(-car.verticalVelocity * 0.012, -0.2, 0.22), car.heading, -steer * 0.08, 'YXZ');
+        targetQuaternion.setFromEuler(targetEuler);
+        carMesh.quaternion.slerp(targetQuaternion, 1 - Math.exp(-2.3 * dt));
+      }
+
+      carMesh.position.copy(car.position);
+      car.wheelSpin += car.speed * dt / 0.46;
+      for (const wheel of carMesh.userData.wheels) wheel.rotation.x = car.wheelSpin;
+      for (const pivot of carMesh.userData.frontWheels) pivot.rotation.y = -steer * (handbrake ? 0.62 : 0.42);
+
+      const moved = previous.distanceTo(car.position);
+      if (moved < 20) totalDistance += moved;
+      topSpeed = Math.max(topSpeed, Math.abs(car.speed) * 3.6);
+      emitDust(dt);
+
+      if (car.position.y < -20 || Math.abs(car.position.x) > 100000 || Math.abs(car.position.z) > 100000) {
+        resetCar(true);
+        showToast('Vehicle recovered');
+      }
+    }
+
+    function updateCamera(dt) {
+      const forward = new THREE.Vector3(Math.sin(car.heading), 0, Math.cos(car.heading));
+      const right = new THREE.Vector3(forward.z, 0, -forward.x);
+      const speedLift = clamp(Math.abs(car.speed) / 46, 0, 1);
+
+      if (cameraMode === 0) {
+        desiredCamera.copy(car.position).addScaledVector(forward, -9.8 - speedLift * 3.4).add(new THREE.Vector3(0, 4.7 + speedLift * 1.3, 0));
+        lookTarget.copy(car.position).addScaledVector(forward, 5.5 + speedLift * 5).add(new THREE.Vector3(0, 0.8, 0));
+        camera.fov = lerp(camera.fov, 62 + speedLift * 9, 1 - Math.exp(-4 * dt));
+      } else if (cameraMode === 1) {
+        desiredCamera.copy(car.position).addScaledVector(forward, 0.55).add(new THREE.Vector3(0, 1.55, 0));
+        lookTarget.copy(car.position).addScaledVector(forward, 22).add(new THREE.Vector3(0, 1.0, 0));
+        camera.fov = lerp(camera.fov, 71, 1 - Math.exp(-4 * dt));
+      } else {
+        desiredCamera.copy(car.position).addScaledVector(forward, -17).addScaledVector(right, 7).add(new THREE.Vector3(0, 9.5, 0));
+        lookTarget.copy(car.position).addScaledVector(forward, 5).add(new THREE.Vector3(0, 1.2, 0));
+        camera.fov = lerp(camera.fov, 54, 1 - Math.exp(-4 * dt));
+      }
+
+      const minimumCameraY = terrainHeight(desiredCamera.x, desiredCamera.z) + 1.2;
+      desiredCamera.y = Math.max(desiredCamera.y, minimumCameraY);
+      if (cameraShake > 0) {
+        desiredCamera.x += (Math.random() - 0.5) * cameraShake * 0.55;
+        desiredCamera.y += (Math.random() - 0.5) * cameraShake * 0.35;
+        desiredCamera.z += (Math.random() - 0.5) * cameraShake * 0.55;
+      }
+      camera.position.lerp(desiredCamera, 1 - Math.exp(-(cameraMode === 1 ? 13 : 5.5) * dt));
+      cameraTarget.lerp(lookTarget, 1 - Math.exp(-8 * dt));
+      camera.lookAt(cameraTarget);
+      camera.updateProjectionMatrix();
+
+      const lightOrigin = car.position.clone().add(new THREE.Vector3(0, 0.9, 0)).addScaledVector(forward, 1.6);
+      headlightL.position.copy(lightOrigin).addScaledVector(right, -0.7);
+      headlightR.position.copy(lightOrigin).addScaledVector(right, 0.7);
+      headlightL.target.position.copy(car.position).addScaledVector(forward, 28).add(new THREE.Vector3(0, 0.4, 0));
+      headlightR.target.position.copy(headlightL.target.position);
+    }
+
+    function updateBeacon(dt) {
+      beacon.rotation.y += dt * 0.75;
+      beaconRing.rotation.z += dt * 0.35;
+      beacon.position.y = terrainHeight(beacon.position.x, beacon.position.z) + 5.2 + Math.sin(performance.now() * 0.002) * 0.45;
+      const horizontalDistance = Math.hypot(beacon.position.x - car.position.x, beacon.position.z - car.position.z);
+      objectiveDistanceEl.textContent = `${Math.round(horizontalDistance)} m`;
+      if (horizontalDistance < 8.2) {
+        collectedBeacons++;
+        beaconsEl.textContent = collectedBeacons;
+        showToast(`Beacon ${collectedBeacons} reached`);
+        spawnBeacon(false);
+      }
+    }
+
+    function updateLighting(dt) {
+      dayClock = (dayClock + dt * 0.0013) % 1;
+      const angle = dayClock * Math.PI * 2;
+      const sunHeight = Math.sin(angle);
+      const sunDistance = 700;
+      sunMesh.position.set(Math.cos(angle) * sunDistance, sunHeight * 430 + 100, Math.sin(angle * 0.7) * sunDistance);
+      sunLight.position.copy(car.position).add(new THREE.Vector3(Math.cos(angle) * 130, Math.max(35, sunHeight * 130 + 80), Math.sin(angle * 0.7) * 130));
+      sunLight.target.position.copy(car.position);
+      scene.add(sunLight.target);
+      const daylight = clamp((sunHeight + 0.25) / 0.85, 0.16, 1);
+      sunLight.intensity = 0.5 + daylight * 3.2;
+      hemi.intensity = 0.55 + daylight * 1.65;
+      const headIntensity = daylight < 0.42 ? lerp(18, 0, (daylight - 0.15) / 0.27) : 0;
+      headlightL.intensity = headIntensity;
+      headlightR.intensity = headIntensity;
+      renderer.toneMappingExposure = 0.66 + daylight * 0.4;
+      scene.fog.density = lerp(0.0026, 0.00155, daylight);
+      const skyTop = new THREE.Color().setHSL(0.57, 0.38, lerp(0.12, 0.52, daylight));
+      const skyBottom = new THREE.Color().setHSL(lerp(0.04, 0.095, daylight), lerp(0.54, 0.42, daylight), lerp(0.17, 0.78, daylight));
+      sky.material.uniforms.topColor.value.copy(skyTop);
+      sky.material.uniforms.bottomColor.value.copy(skyBottom);
+      scene.background.copy(skyBottom);
+      scene.fog.color.copy(skyBottom);
+      sky.position.copy(car.position);
+      water.position.x = car.position.x;
+      water.position.z = car.position.z;
+    }
+
+    function updateHud() {
+      const kmh = Math.round(Math.abs(car.speed) * 3.6);
+      const drifting = !!input.Space && Math.abs(car.speed) > 5;
+      speedEl.textContent = String(kmh).padStart(3, '0');
+      gearEl.textContent = drifting
+        ? 'DRIFT'
+        : car.speed > 0.6
+          ? ((input.ShiftLeft || input.ShiftRight) && car.nitro > 0.02 ? 'N₂' : 'D')
+          : car.speed < -0.6
+            ? 'R'
+            : 'N';
+      meterFill.style.width = `${clamp(kmh / 166 * 100, 0, 100)}%`;
+      distanceEl.textContent = `${(totalDistance / 1000).toFixed(2)} km`;
+      bestSpeedEl.textContent = `${Math.round(topSpeed)} km/h`;
+      nitroReadoutEl.textContent = `${Math.round(car.nitro * 100)}%`;
+      nitroFill.style.width = `${clamp(car.nitro * 100, 0, 100)}%`;
+    }
+
+    function drawMinimap() {
+      const w = minimap.width;
+      const h = minimap.height;
+      const center = w / 2;
+      const scale = 0.42;
+      mapCtx.clearRect(0, 0, w, h);
+      const gradient = mapCtx.createRadialGradient(center, center, 8, center, center, center);
+      gradient.addColorStop(0, 'rgba(16,32,40,.78)');
+      gradient.addColorStop(1, 'rgba(4,10,16,.94)');
+      mapCtx.fillStyle = gradient;
+      mapCtx.fillRect(0, 0, w, h);
+
+      mapCtx.save();
+      mapCtx.beginPath();
+      mapCtx.arc(center, center, center - 4, 0, Math.PI * 2);
+      mapCtx.clip();
+      mapCtx.strokeStyle = 'rgba(255,255,255,.07)';
+      mapCtx.lineWidth = 1;
+      for (let r = 45; r < center; r += 45) {
+        mapCtx.beginPath();
+        mapCtx.arc(center, center, r, 0, Math.PI * 2);
+        mapCtx.stroke();
+      }
+      mapCtx.beginPath();
+      mapCtx.moveTo(center, 0); mapCtx.lineTo(center, h);
+      mapCtx.moveTo(0, center); mapCtx.lineTo(w, center);
+      mapCtx.stroke();
+
+      const dx = (beacon.position.x - car.position.x) * scale;
+      const dz = (beacon.position.z - car.position.z) * scale;
+      if (Math.hypot(dx, dz) < center - 15) {
+        mapCtx.fillStyle = '#8ff0ff';
+        mapCtx.shadowColor = '#8ff0ff';
+        mapCtx.shadowBlur = 14;
+        mapCtx.beginPath();
+        mapCtx.arc(center + dx, center + dz, 6, 0, Math.PI * 2);
+        mapCtx.fill();
+        mapCtx.shadowBlur = 0;
+      } else {
+        const angle = Math.atan2(dz, dx);
+        const radius = center - 18;
+        const bx = center + Math.cos(angle) * radius;
+        const by = center + Math.sin(angle) * radius;
+        mapCtx.save();
+        mapCtx.translate(bx, by);
+        mapCtx.rotate(angle + Math.PI / 2);
+        mapCtx.fillStyle = '#8ff0ff';
+        mapCtx.beginPath();
+        mapCtx.moveTo(0, -9); mapCtx.lineTo(6, 6); mapCtx.lineTo(-6, 6); mapCtx.closePath();
+        mapCtx.fill();
+        mapCtx.restore();
+      }
+
+      mapCtx.save();
+      mapCtx.translate(center, center);
+      mapCtx.rotate(-car.heading);
+      mapCtx.fillStyle = '#fff08a';
+      mapCtx.beginPath();
+      mapCtx.moveTo(0, 13); mapCtx.lineTo(8, -9); mapCtx.lineTo(0, -5); mapCtx.lineTo(-8, -9); mapCtx.closePath();
+      mapCtx.fill();
+      mapCtx.restore();
+      mapCtx.restore();
+    }
+
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1600);
+    }
+
+    function setPaused(value) {
+      if (!running) return;
+      paused = value;
+      pauseMenu.classList.toggle('hidden', !paused);
+      updateAudio();
+    }
+
+    function startGame() {
+      WORLD.seed = seedFromString(seedInput.value.trim() || 'ENDLESS');
+      for (const key of [...WORLD.chunks.keys()]) disposeChunk(key);
+      WORLD.lastChunkX = Infinity;
+      WORLD.lastChunkZ = Infinity;
+      totalDistance = 0;
+      topSpeed = 0;
+      collectedBeacons = 0;
+      crashCount = 0;
+      driftScore = 0;
+      car.nitro = 1;
+      beaconsEl.textContent = '0';
+      crashesEl.textContent = '0';
+      driftScoreEl.textContent = '0';
+      resetCar(false);
+      spawnBeacon(true);
+      updateChunks(true);
+      initAudio();
+      if (audio?.context.state === 'suspended') audio.context.resume();
+      running = true;
+      paused = false;
+      startMenu.classList.add('hidden');
+      pauseMenu.classList.add('hidden');
+      hud.classList.add('visible');
+      showToast(`World seed: ${seedInput.value.trim() || 'ENDLESS'}`);
+    }
+
+    playButton.addEventListener('click', startGame);
+    resumeButton.addEventListener('click', () => setPaused(false));
+    seedInput.addEventListener('keydown', event => { if (event.key === 'Enter') startGame(); });
+
+    addEventListener('keydown', event => {
+      input[event.code] = true;
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(event.code)) event.preventDefault();
+      if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') event.preventDefault();
+      if (event.repeat) return;
+      if (event.code === 'KeyR' && running) { resetCar(true); showToast('Vehicle reset'); }
+      if (event.code === 'KeyC' && running) { cameraMode = (cameraMode + 1) % 3; showToast(['Chase camera', 'Hood camera', 'Cinematic camera'][cameraMode]); }
+      if (event.code === 'KeyM' && running) { soundEnabled = !soundEnabled; showToast(soundEnabled ? 'Sound on' : 'Sound off'); }
+      if (event.code === 'KeyP' && running) setPaused(!paused);
+    });
+    addEventListener('keyup', event => { input[event.code] = false; });
+    addEventListener('blur', () => { for (const key of Object.keys(input)) input[key] = false; if (running) setPaused(true); });
+
+    document.querySelectorAll('.touch-btn').forEach(button => {
+      const key = button.dataset.key;
+      const press = event => { event.preventDefault(); input[key] = true; button.classList.add('active'); };
+      const release = event => { event.preventDefault(); input[key] = false; button.classList.remove('active'); };
+      button.addEventListener('pointerdown', press);
+      button.addEventListener('pointerup', release);
+      button.addEventListener('pointercancel', release);
+      button.addEventListener('pointerleave', release);
+    });
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 1.8));
+      renderer.setSize(innerWidth, innerHeight);
+    });
+
+    const clock = new THREE.Clock();
+    let mapAccumulator = 0;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.05);
+
+      if (running && !paused) {
+        updateCar(dt);
+        updateObstacles(dt);
+        updateChunks();
+        updateBeacon(dt);
+        updateDust(dt);
+        updateLighting(dt);
+        updateCamera(dt);
+        updateHud();
+        updateAudio();
+        mapAccumulator += dt;
+        if (mapAccumulator > 0.06) { drawMinimap(); mapAccumulator = 0; }
+      } else {
+        sky.rotation.y += dt * 0.003;
+        updateAudio();
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    updateChunks(true);
+    spawnBeacon(true);
+    updateCamera(1);
+    drawMinimap();
+    animate();
+  </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 import { Button } from "@chatbot/ui/components/button";
 import { cn } from "@chatbot/ui/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileTextIcon, MenuIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
+import { FileTextIcon, MenuIcon, PlusIcon, Trash2Icon, XIcon, CarIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -130,6 +130,14 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <div className="mt-auto border-t border-sidebar-border p-2">
+        <Link
+          href="/drive"
+          onClick={onNavigate}
+          className="mb-2 flex items-center gap-2 border border-transparent px-2.5 py-2 font-mono text-[10px] tracking-wider text-white/60 transition-colors hover:border-white/20 hover:bg-white/5 hover:text-white"
+        >
+          <CarIcon className="size-3.5 shrink-0" />
+          DRIVE
+        </Link>
         <Link
           href="/documents"
           onClick={onNavigate}
