@@ -1,0 +1,40 @@
+{
+  "name": "chatbot",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "npm run dev -w web",
+    "dev:cf": "turbo run dev -F @chatbot/infra",
+    "build": "turbo run build",
+    "check-types": "turbo run check-types",
+    "test": "npm run test -w web",
+    "dev:web": "npm run dev -w web",
+    "deploy": "turbo run deploy -F @chatbot/infra",
+    "destroy": "turbo run destroy -F @chatbot/infra",
+    "db:generate": "npm run db:generate -w @chatbot/db",
+    "db:migrate": "npm run db:migrate -w @chatbot/db",
+    "db:push": "npm run db:push -w @chatbot/db",
+    "db:studio": "npm run db:studio -w @chatbot/db",
+    "docker:up": "docker compose up -d postgres ollama && docker compose run --rm ollama-init",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f --tail=100 postgres ollama",
+    "docker:ps": "docker compose ps"
+  },
+  "dependencies": {
+    "@chatbot/env": "*",
+    "dotenv": "^17.4.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@chatbot/config": "*",
+    "@cloudflare/workers-types": "^5.20260708.1",
+    "@types/node": "^22.13.14",
+    "turbo": "^2.10.2",
+    "typescript": "^6"
+  },
+  "packageManager": "npm@11.14.1"
+}

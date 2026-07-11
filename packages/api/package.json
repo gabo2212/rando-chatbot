@@ -1,0 +1,27 @@
+{
+  "name": "@chatbot/api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@chatbot/auth": "*",
+    "@chatbot/db": "*",
+    "@chatbot/env": "*",
+    "@trpc/client": "^11.18.0",
+    "@trpc/server": "^11.18.0",
+    "dotenv": "^17.4.2",
+    "next": "^16.2.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@chatbot/config": "*",
+    "typescript": "^6"
+  }
+}

@@ -1,0 +1,3 @@
+{
+  "extends": "@chatbot/config/tsconfig.base.json"
+}

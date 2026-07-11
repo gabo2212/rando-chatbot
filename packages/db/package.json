@@ -1,0 +1,31 @@
+{
+  "name": "@chatbot/db",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./schema": {
+      "default": "./src/schema/index.ts"
+    }
+  },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@chatbot/env": "*",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.1",
+    "pg": "^8.22.0"
+  },
+  "devDependencies": {
+    "@chatbot/config": "*",
+    "@types/pg": "^8.20.0",
+    "drizzle-kit": "^0.31.10",
+    "typescript": "^6"
+  }
+}

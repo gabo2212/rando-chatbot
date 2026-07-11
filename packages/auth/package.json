@@ -1,0 +1,24 @@
+{
+  "name": "@chatbot/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@chatbot/db": "*",
+    "@chatbot/env": "*",
+    "better-auth": "1.6.23",
+    "dotenv": "^17.4.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@chatbot/config": "*",
+    "typescript": "^6"
+  }
+}
