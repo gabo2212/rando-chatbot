@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
           {
             key: "Permissions-Policy",
             value:
-              "accelerometer=(self), gyroscope=(self), magnetometer=(self), autoplay=(self)",
+              "accelerometer=*, gyroscope=*, magnetometer=*, autoplay=*",
           },
         ],
       },
@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
           {
             key: "Permissions-Policy",
             value:
-              "accelerometer=(self), gyroscope=(self), magnetometer=(self), autoplay=(self)",
+              "accelerometer=*, gyroscope=*, magnetometer=*, autoplay=*",
           },
         ],
       },
