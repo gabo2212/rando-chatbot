@@ -114,15 +114,23 @@
 
     #toast {
       position: absolute;
-      left: 50%; top: 18%;
-      transform: translate(-50%, -10px);
-      padding: 12px 18px;
+      left: 50%;
+      top: max(12px, env(safe-area-inset-top));
+      bottom: auto;
+      transform: translate(-50%, -6px);
+      width: max-content;
+      max-width: min(280px, calc(100vw - 24px));
+      height: auto;
+      padding: 8px 14px;
       border-radius: 999px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
       letter-spacing: .08em;
       text-transform: uppercase;
+      white-space: nowrap;
       opacity: 0;
+      pointer-events: none;
+      z-index: 15;
       transition: opacity .25s ease, transform .25s ease;
     }
     #toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -279,7 +287,13 @@
       #north { font-size: 7px; }
       #objective { display: none !important; }
       #controls { display: none !important; }
-      #toast { font-size: 11px; padding: 8px 12px; bottom: 78px; }
+      #toast {
+        font-size: 10px;
+        padding: 6px 12px;
+        top: max(8px, env(safe-area-inset-top));
+        bottom: auto;
+        max-width: min(240px, calc(100vw - 20px));
+      }
     }
 
     /* body.mobile-play set in JS — more reliable than pointer:coarse alone in iframes */
@@ -354,7 +368,7 @@
         <button id="play" class="primary" type="button">START ENGINE</button>
         <input id="seed" value="DRIVE-2049" maxlength="32" aria-label="World seed" />
       </div>
-      <div class="menu-notes">Landscape + gyro steer · gas / brake / drift / nitro</div>
+      <div class="menu-notes">Landscape + gyro steer · gas / brake / drift / nitro · <a href="/drive" id="back-site" style="color:rgba(143,240,255,.85);text-decoration:none">RANDO</a></div>
     </section>
   </div>
 
@@ -505,6 +519,7 @@
     let gyroZero = 0;
     let gyroReady = false;
     let gyroPermissionTried = false;
+    let gyroUsingMotion = false;
     const isMobilePlay =
       matchMedia('(pointer: coarse)').matches ||
       matchMedia('(hover: none) and (max-width: 1024px)').matches ||
@@ -2242,54 +2257,79 @@
       return innerWidth > innerHeight ? 90 : 0;
     }
 
-    /** Mario Kart wheel: landscape roll → steer. Positive = turn left (KeyA). */
-    function wheelTiltRaw(event) {
-      const angle = ((screenAngle() % 360) + 360) % 360;
-      const beta = event.beta ?? 0;
-      const gamma = event.gamma ?? 0;
-      // Landscape: hold phone like a wheel — tip left/right uses beta
-      if (angle > 45 && angle < 135) return beta;          // 90° landscape-primary
-      if (angle > 225 && angle < 315) return -beta;         // 270° / -90° landscape-secondary
-      // Portrait fallback (should be rare — overlay asks to rotate)
-      return gamma;
-    }
-
-    function onDeviceOrientation(event) {
-      if (event.gamma == null && event.beta == null) return;
-      const raw = wheelTiltRaw(event);
+    function applyWheelSteer(raw, scale) {
       if (!gyroReady) {
         gyroZero = raw;
         gyroReady = true;
       }
       const delta = raw - gyroZero;
-      const dead = 2.5;
+      const dead = scale * 0.06;
       let v = 0;
-      if (Math.abs(delta) > dead) v = (delta - Math.sign(delta) * dead) / 22;
-      // Negate so tipping left edge down steers left (Mario Kart feel)
+      if (Math.abs(delta) > dead) v = (delta - Math.sign(delta) * dead) / scale;
+      // Positive raw (right tip) → negative steer (turn right) so left tip turns left
       gyroSteer = clamp(-v, -1, 1);
       updateGyroBadge();
+    }
+
+    /** Gravity lateral axis — works as a steering wheel in landscape. */
+    function lateralFromGravity(g) {
+      const angle = ((screenAngle() % 360) + 360) % 360;
+      const x = g.x ?? 0;
+      const y = g.y ?? 0;
+      if (angle > 45 && angle < 135) return -y;       // landscape-primary
+      if (angle > 225 && angle < 315) return y;        // landscape-secondary
+      if (angle >= 135 && angle <= 225) return -x;     // portrait upside-down
+      return x;                                       // portrait
+    }
+
+    function onDeviceMotion(event) {
+      const g = event.accelerationIncludingGravity;
+      if (!g || (g.x == null && g.y == null)) return;
+      gyroUsingMotion = true;
+      applyWheelSteer(lateralFromGravity(g), 5.5);
+    }
+
+    function onDeviceOrientation(event) {
+      // Prefer gravity motion when available — orientation axes vary by browser
+      if (gyroUsingMotion) return;
+      if (event.gamma == null && event.beta == null) return;
+      const angle = ((screenAngle() % 360) + 360) % 360;
+      const beta = event.beta ?? 0;
+      const gamma = event.gamma ?? 0;
+      // Pick the axis that moves more like a wheel for this orientation
+      let raw;
+      if (angle > 45 && angle < 135) raw = beta;
+      else if (angle > 225 && angle < 315) raw = -beta;
+      else raw = gamma;
+      applyWheelSteer(raw, 28);
     }
 
     async function enableGyroSteering() {
       if (!isMobilePlay || gyroPermissionTried) return gyroReady;
       gyroPermissionTried = true;
       try {
-        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-          try { await DeviceMotionEvent.requestPermission(); } catch {}
-        }
+        let granted = true;
         if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
           const res = await DeviceOrientationEvent.requestPermission();
-          if (res !== 'granted') {
-            showToast('Allow motion access to steer');
-            return false;
-          }
+          granted = res === 'granted';
         }
-        addEventListener('deviceorientation', onDeviceOrientation, true);
-        showToast('Tilt phone to steer · tap GYRO to recenter');
+        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+          try {
+            const res = await DeviceMotionEvent.requestPermission();
+            if (res === 'granted') granted = true;
+          } catch {}
+        }
+        if (!granted) {
+          showToast('Allow Motion & Orientation to steer');
+          return false;
+        }
+        addEventListener('devicemotion', onDeviceMotion, { passive: true });
+        addEventListener('deviceorientation', onDeviceOrientation, { passive: true });
+        showToast('Tilt like a wheel to steer');
         return true;
       } catch (err) {
         console.warn('Gyro unavailable', err);
-        showToast('Gyro unavailable on this device');
+        showToast('Gyro unavailable — check Safari settings');
         return false;
       }
     }
