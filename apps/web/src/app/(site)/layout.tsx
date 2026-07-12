@@ -16,7 +16,10 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-black">
-      <SiteHeader />
+      {/* Hide chrome on Drive so landscape phones keep the Start button on-screen */}
+      <div className={isDrive ? "hidden md:block" : undefined}>
+        <SiteHeader />
+      </div>
       <main
         className={cn(
           "min-h-0 flex-1",

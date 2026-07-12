@@ -136,6 +136,8 @@
       padding: 22px;
       background: radial-gradient(circle at 50% 35%, rgba(18,33,48,.35), rgba(3,7,12,.82));
       transition: opacity .35s ease, visibility .35s ease;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
@@ -144,6 +146,7 @@
       border-radius: 28px;
       padding: clamp(24px, 5vw, 46px);
       text-align: center;
+      pointer-events: auto;
     }
     .eyebrow { font-size: 11px; font-weight: 800; letter-spacing: .28em; color: var(--accent); text-transform: uppercase; }
     h1 { margin: 10px 0 0; font-size: clamp(48px, 10vw, 90px); line-height: .86; letter-spacing: -.075em; }
@@ -159,8 +162,10 @@
       border-radius: 13px;
       outline: none;
       background: rgba(255,255,255,.06);
+      order: 1;
     }
     .seed-row input:focus { border-color: rgba(143,240,255,.7); box-shadow: 0 0 0 3px rgba(143,240,255,.1); }
+    .seed-row .primary { order: 2; flex-shrink: 0; }
     .primary {
       height: 48px;
       padding: 0 21px;
@@ -172,13 +177,46 @@
       font-weight: 900;
       letter-spacing: .04em;
       box-shadow: 0 10px 30px rgba(86,210,230,.22);
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
     .primary:hover { filter: brightness(1.05); transform: translateY(-1px); }
+    .primary:disabled { opacity: .7; cursor: wait; }
     .menu-notes { margin-top: 17px; color: rgba(255,255,255,.45); font-size: 10px; letter-spacing: .08em; }
 
     #pause-menu .menu { max-width: 420px; }
     #pause-menu h2 { margin: 8px 0 4px; font-size: 48px; letter-spacing: -.05em; }
     #resume { margin-top: 20px; min-width: 150px; }
+
+    /* Landscape / short phone: keep START ENGINE on screen */
+    @media (max-height: 520px), ((pointer: coarse) and (orientation: landscape)) {
+      .overlay { padding: 10px; align-content: center; }
+      .menu {
+        width: min(520px, 100%);
+        border-radius: 16px;
+        padding: 14px 16px 16px;
+      }
+      .eyebrow { font-size: 9px; letter-spacing: .18em; }
+      h1 { margin: 4px 0 0; font-size: clamp(28px, 8vh, 42px); line-height: .9; }
+      h1 br { display: none; }
+      .lead { display: none; }
+      .seed-row {
+        flex-direction: column;
+        margin: 12px auto 0;
+        max-width: 280px;
+        gap: 8px;
+      }
+      .seed-row input { height: 40px; order: 2; }
+      #play.primary, .seed-row .primary {
+        order: 1;
+        width: 100%;
+        height: 48px;
+        font-size: 15px;
+      }
+      .menu-notes { margin-top: 10px; font-size: 9px; }
+      #pause-menu h2 { font-size: 28px; margin: 4px 0; }
+      #resume { margin-top: 12px; width: min(200px, 100%); }
+    }
 
     #touch-controls { display: none; position: fixed; inset: 0; z-index: 8; pointer-events: none; }
     .touch-cluster { position: absolute; bottom: max(12px, env(safe-area-inset-bottom)); display: flex; gap: 8px; pointer-events: auto; align-items: flex-end; }
@@ -245,12 +283,13 @@
     }
 
     /* body.mobile-play set in JS — more reliable than pointer:coarse alone in iframes */
-    body.mobile-play #touch-controls { display: block; }
-    body.mobile-play #gyro-badge { display: block; }
+    body.mobile-play.playing #touch-controls { display: block; }
+    body.mobile-play.playing #gyro-badge { display: block; }
     body.mobile-play #hud.visible #stats { opacity: .92; }
     body.mobile-play.portrait #rotate-overlay.show { display: flex; }
     body.mobile-play.portrait #touch-controls { display: none; }
     body:not(.mobile-play) #rotate-overlay { display: none !important; }
+    body:not(.playing) #touch-controls { display: none !important; }
   </style>
 </head>
 <body>
@@ -312,10 +351,10 @@
       <h1>ENDLESS<br>DRIVE</h1>
       <p class="lead">Cruise an endless low-poly world. Hit trees and rocks with real knockback, boost with nitro, rack up drift score, and chase beacons under changing light.</p>
       <div class="seed-row">
+        <button id="play" class="primary" type="button">START ENGINE</button>
         <input id="seed" value="DRIVE-2049" maxlength="32" aria-label="World seed" />
-        <button id="play" class="primary">START ENGINE</button>
       </div>
-      <div class="menu-notes">Landscape + gyro steer on phone · gas/brake/drift/nitro · Supra loop</div>
+      <div class="menu-notes">Landscape + gyro steer · gas / brake / drift / nitro</div>
     </section>
   </div>
 
@@ -2296,6 +2335,7 @@
       }
       running = true;
       paused = false;
+      document.body.classList.add('playing');
       startMenu.classList.add('hidden');
       pauseMenu.classList.add('hidden');
       hud.classList.add('visible');
