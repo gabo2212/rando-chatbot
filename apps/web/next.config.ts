@@ -5,6 +5,30 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
   reactCompiler: true,
   transpilePackages: ["shiki"],
+  async headers() {
+    return [
+      {
+        source: "/drive",
+        headers: [
+          {
+            key: "Permissions-Policy",
+            value:
+              "accelerometer=(self), gyroscope=(self), magnetometer=(self), autoplay=(self)",
+          },
+        ],
+      },
+      {
+        source: "/games/:path*",
+        headers: [
+          {
+            key: "Permissions-Policy",
+            value:
+              "accelerometer=(self), gyroscope=(self), magnetometer=(self), autoplay=(self)",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

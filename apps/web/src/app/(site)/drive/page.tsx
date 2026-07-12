@@ -1,10 +1,11 @@
 export default function DrivePage() {
   return (
-    <div className="relative h-full min-h-0 w-full bg-black">
+    <div className="relative h-full min-h-0 w-full overflow-hidden bg-black touch-none">
       <iframe
         src="/games/procedural-drive.html"
         title="Endless Drive"
-        allow="autoplay; fullscreen; gamepad"
+        allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope; magnetometer"
+        allowFullScreen
         className="absolute inset-0 h-full w-full border-0"
       />
     </div>

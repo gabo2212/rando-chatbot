@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
   <title>Endless Drive</title>
   <style>
     :root {
@@ -16,8 +18,8 @@
     }
 
     * { box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #0a1118; }
-    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #0a1118; touch-action: none; overscroll-behavior: none; }
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; position: fixed; inset: 0; }
     button, input { font: inherit; }
 
     #game, #game canvas.webgl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
@@ -179,26 +181,76 @@
     #resume { margin-top: 20px; min-width: 150px; }
 
     #touch-controls { display: none; position: fixed; inset: 0; z-index: 8; pointer-events: none; }
-    .touch-cluster { position: absolute; bottom: max(22px, env(safe-area-inset-bottom)); display: flex; gap: 12px; pointer-events: auto; }
-    .touch-cluster.left { left: max(20px, env(safe-area-inset-left)); }
-    .touch-cluster.right { right: max(20px, env(safe-area-inset-right)); }
-    .touch-btn { width: 64px; height: 64px; border-radius: 20px; border: 1px solid rgba(255,255,255,.2); background: rgba(6,12,18,.58); color: white; font-size: 22px; font-weight: 900; backdrop-filter: blur(10px); touch-action: none; }
+    .touch-cluster { position: absolute; bottom: max(12px, env(safe-area-inset-bottom)); display: flex; gap: 8px; pointer-events: auto; align-items: flex-end; }
+    .touch-cluster.left { left: max(12px, env(safe-area-inset-left)); }
+    .touch-cluster.right { right: max(12px, env(safe-area-inset-right)); flex-direction: row-reverse; }
+    .touch-btn {
+      width: 48px; height: 48px; border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.2); background: rgba(6,12,18,.62);
+      color: white; font-size: 11px; font-weight: 900; letter-spacing: .04em;
+      backdrop-filter: blur(10px); touch-action: none; user-select: none;
+      -webkit-user-select: none;
+    }
+    .touch-btn.gas { width: 64px; height: 64px; font-size: 14px; border-radius: 18px; }
     .touch-btn.active { background: rgba(143,240,255,.32); border-color: rgba(143,240,255,.8); }
+    #gyro-badge {
+      display: none; position: absolute; top: max(10px, env(safe-area-inset-top));
+      left: 50%; transform: translateX(-50%);
+      padding: 6px 12px; border-radius: 999px; font-size: 10px; letter-spacing: .12em;
+      text-transform: uppercase; color: rgba(245,247,251,.75);
+      background: rgba(8,13,20,.55); border: 1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(10px); pointer-events: auto; white-space: nowrap; cursor: pointer;
+    }
+    #gyro-badge .bar {
+      display: inline-block; width: 56px; height: 4px; margin: 0 8px 1px;
+      border-radius: 99px; background: rgba(255,255,255,.15); vertical-align: middle; position: relative;
+    }
+    #gyro-badge .bar > i {
+      position: absolute; top: -2px; width: 8px; height: 8px; border-radius: 50%;
+      background: #8ff0ff; left: 50%; transform: translateX(-50%);
+    }
+    #rotate-overlay {
+      display: none; position: fixed; inset: 0; z-index: 40;
+      background: rgba(4,8,12,.92); color: #f5f7fb;
+      align-items: center; justify-content: center; text-align: center; padding: 28px;
+      font-family: inherit;
+    }
+    #rotate-overlay.show { display: flex; }
+    #rotate-overlay h2 { font-size: 28px; letter-spacing: -.04em; margin: 0 0 10px; }
+    #rotate-overlay p { margin: 0; color: rgba(245,247,251,.62); font-size: 14px; line-height: 1.45; max-width: 280px; }
 
-    @media (max-width: 760px) {
-      #stats { width: 245px; }
-      #speed { font-size: 52px; }
-      #trip-grid { gap: 6px; }
-      #minimap-wrap { width: 130px; height: 130px; }
-      #objective { top: 158px; width: 130px; padding: 9px; }
-      #objective-distance { font-size: 18px; }
-      #controls { display: none; }
+    @media (max-width: 900px), (pointer: coarse) {
+      #stats {
+        width: min(180px, 38vw); padding: 6px 8px 7px;
+        top: max(6px, env(safe-area-inset-top));
+        left: max(6px, env(safe-area-inset-left));
+        border-radius: 10px;
+      }
+      #brand { font-size: 8px; letter-spacing: .14em; }
+      #weather { font-size: 7px; }
+      #speed { font-size: clamp(24px, 6vw, 34px); }
+      #unit, #gear { font-size: 9px; }
+      #meter { margin-top: 5px; height: 3px; }
+      #nitro-meter { margin-top: 3px; height: 2px; }
+      #trip-grid { display: none; }
+      #minimap-wrap {
+        width: 68px; height: 68px; padding: 3px;
+        top: max(6px, env(safe-area-inset-top));
+        right: max(6px, env(safe-area-inset-right));
+      }
+      #north { font-size: 7px; }
+      #objective { display: none !important; }
+      #controls { display: none !important; }
+      #toast { font-size: 11px; padding: 8px 12px; bottom: 78px; }
     }
 
-    @media (pointer: coarse) {
-      #touch-controls { display: block; }
-      #objective { display: none; }
-    }
+    /* body.mobile-play set in JS — more reliable than pointer:coarse alone in iframes */
+    body.mobile-play #touch-controls { display: block; }
+    body.mobile-play #gyro-badge { display: block; }
+    body.mobile-play #hud.visible #stats { opacity: .92; }
+    body.mobile-play.portrait #rotate-overlay.show { display: flex; }
+    body.mobile-play.portrait #touch-controls { display: none; }
+    body:not(.mobile-play) #rotate-overlay { display: none !important; }
   </style>
 </head>
 <body>
@@ -263,7 +315,7 @@
         <input id="seed" value="DRIVE-2049" maxlength="32" aria-label="World seed" />
         <button id="play" class="primary">START ENGINE</button>
       </div>
-      <div class="menu-notes">Keyboard or touch · Supra loop · anti-lag · drift SFX · GIGA (G) · chute on brake</div>
+      <div class="menu-notes">Landscape + gyro steer on phone · gas/brake/drift/nitro · Supra loop</div>
     </section>
   </div>
 
@@ -276,15 +328,22 @@
     </section>
   </div>
 
+  <div id="rotate-overlay" aria-hidden="true">
+    <div>
+      <h2>Turn sideways</h2>
+      <p>Hold your phone like a steering wheel. Tilt left/right to steer — Mario Kart style.</p>
+    </div>
+  </div>
+
   <div id="touch-controls" aria-hidden="true">
+    <div id="gyro-badge">GYRO <span class="bar"><i id="gyro-dot"></i></span> STEER</div>
     <div class="touch-cluster left">
-      <button class="touch-btn" data-key="KeyA">◀</button>
-      <button class="touch-btn" data-key="KeyD">▶</button>
+      <button class="touch-btn" data-key="KeyS" type="button">BRAKE</button>
+      <button class="touch-btn" data-key="Space" type="button">DRIFT</button>
     </div>
     <div class="touch-cluster right">
-      <button class="touch-btn" data-key="KeyS">▼</button>
-      <button class="touch-btn" data-key="KeyW">▲</button>
-      <button class="touch-btn" data-key="ShiftLeft" style="font-size:11px;letter-spacing:.04em">N₂</button>
+      <button class="touch-btn gas" data-key="KeyW" type="button">GAS</button>
+      <button class="touch-btn" data-key="ShiftLeft" type="button">N₂</button>
     </div>
   </div>
 
@@ -402,6 +461,17 @@
     let cameraMode = 0;
     let soundEnabled = true;
     let audio = null;
+    let sharedAudioContext = null;
+    let gyroSteer = 0;
+    let gyroZero = 0;
+    let gyroReady = false;
+    let gyroPermissionTried = false;
+    const isMobilePlay =
+      matchMedia('(pointer: coarse)').matches ||
+      matchMedia('(hover: none) and (max-width: 1024px)').matches ||
+      (navigator.maxTouchPoints > 0 && Math.min(screen.width, screen.height) <= 920);
+    const isCoarsePointer = isMobilePlay;
+    if (isMobilePlay) document.body.classList.add('mobile-play');
     let toastTimer = 0;
     let totalDistance = 0;
     let topSpeed = 0;
@@ -1144,12 +1214,34 @@
       dustGeometry.attributes.position.needsUpdate = true;
     }
 
+    async function unlockMobileAudio() {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return false;
+      if (!sharedAudioContext) sharedAudioContext = new AudioContext();
+      if (sharedAudioContext.state === 'suspended') {
+        try { await sharedAudioContext.resume(); } catch {}
+      }
+      // Silent one-shot keeps iOS audio unlocked after the user gesture
+      try {
+        const buf = sharedAudioContext.createBuffer(1, 1, 22050);
+        const src = sharedAudioContext.createBufferSource();
+        src.buffer = buf;
+        src.connect(sharedAudioContext.destination);
+        src.start(0);
+      } catch {}
+      if (audio?.context && audio.context.state === 'suspended') {
+        try { await audio.context.resume(); } catch {}
+      }
+      return (sharedAudioContext.state === 'running') || (audio?.context?.state === 'running');
+    }
+
     function initAudio() {
       if (audio?.loading || audio?.ready) return audio?.readyPromise;
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       if (!AudioContext) return Promise.resolve(false);
 
-      const context = new AudioContext();
+      const context = sharedAudioContext || new AudioContext();
+      sharedAudioContext = context;
       const master = context.createGain();
       master.gain.value = 0.0001;
       master.connect(context.destination);
@@ -1216,6 +1308,11 @@
 
       audio.readyPromise = (async () => {
         try {
+          // iOS: BufferSources started while suspended often never play
+          if (context.state === 'suspended') {
+            try { await context.resume(); } catch {}
+          }
+
           const softDecode = async (url) => {
             try { return await decode(url); }
             catch (err) { console.warn('Missing audio', url, err); return null; }
@@ -1257,6 +1354,10 @@
             noiseData[i] = i === 0 ? white : (noiseData[i - 1] * 0.35 + white * 0.65);
           }
           audio.noiseBuf = noiseBuf;
+
+          if (context.state === 'suspended') {
+            try { await context.resume(); } catch {}
+          }
 
           audio.engine = startFullLoop(engineBuf, engineGain);
           audio.engineGain = engineGain;
@@ -1397,6 +1498,9 @@
       const holdingDrift = !!input.Space && speed > 1.2;
       const drifting = holdingDrift && speed > 5;
       const audible = soundEnabled && running && !paused;
+      if (audible && audio.context.state === 'suspended') {
+        audio.context.resume().catch(() => {});
+      }
 
       // Louder overall — this should feel like a car on boil
       audio.master.gain.setTargetAtTime(audible ? 0.42 : 0.0001, now, 0.05);
@@ -1687,8 +1791,9 @@
 
       const throttle = input.KeyW || input.ArrowUp ? 1 : 0;
       const brake = input.KeyS || input.ArrowDown ? 1 : 0;
-      // A = left, D = right
-      const steer = (input.KeyA || input.ArrowLeft ? 1 : 0) - (input.KeyD || input.ArrowRight ? 1 : 0);
+      // Keyboard A/D + Mario Kart gyro wheel (phone tilt)
+      const keySteer = (input.KeyA || input.ArrowLeft ? 1 : 0) - (input.KeyD || input.ArrowRight ? 1 : 0);
+      const steer = clamp(keySteer + (isCoarsePointer ? gyroSteer : 0), -1, 1);
       const handbrake = !!input.Space;
       const nitroHeld = !!(input.ShiftLeft || input.ShiftRight);
       const previous = car.position.clone();
@@ -2074,7 +2179,95 @@
       updateAudio();
     }
 
+    function updateRotateOverlay() {
+      const overlay = document.querySelector('#rotate-overlay');
+      if (!overlay) return;
+      const portrait = matchMedia('(orientation: portrait)').matches
+        || (innerHeight > innerWidth && isMobilePlay);
+      document.body.classList.toggle('portrait', isMobilePlay && portrait);
+      const needRotate = isMobilePlay && portrait;
+      overlay.classList.toggle('show', needRotate);
+      overlay.setAttribute('aria-hidden', needRotate ? 'false' : 'true');
+    }
+
+    function updateGyroBadge() {
+      const dot = document.querySelector('#gyro-dot');
+      if (!dot) return;
+      const x = 50 + gyroSteer * 42;
+      dot.style.left = `${clamp(x, 8, 92)}%`;
+    }
+
+    function screenAngle() {
+      if (screen.orientation && typeof screen.orientation.angle === 'number') return screen.orientation.angle;
+      if (typeof window.orientation === 'number') return window.orientation;
+      return innerWidth > innerHeight ? 90 : 0;
+    }
+
+    /** Mario Kart wheel: landscape roll → steer. Positive = turn left (KeyA). */
+    function wheelTiltRaw(event) {
+      const angle = ((screenAngle() % 360) + 360) % 360;
+      const beta = event.beta ?? 0;
+      const gamma = event.gamma ?? 0;
+      // Landscape: hold phone like a wheel — tip left/right uses beta
+      if (angle > 45 && angle < 135) return beta;          // 90° landscape-primary
+      if (angle > 225 && angle < 315) return -beta;         // 270° / -90° landscape-secondary
+      // Portrait fallback (should be rare — overlay asks to rotate)
+      return gamma;
+    }
+
+    function onDeviceOrientation(event) {
+      if (event.gamma == null && event.beta == null) return;
+      const raw = wheelTiltRaw(event);
+      if (!gyroReady) {
+        gyroZero = raw;
+        gyroReady = true;
+      }
+      const delta = raw - gyroZero;
+      const dead = 2.5;
+      let v = 0;
+      if (Math.abs(delta) > dead) v = (delta - Math.sign(delta) * dead) / 22;
+      // Negate so tipping left edge down steers left (Mario Kart feel)
+      gyroSteer = clamp(-v, -1, 1);
+      updateGyroBadge();
+    }
+
+    async function enableGyroSteering() {
+      if (!isMobilePlay || gyroPermissionTried) return gyroReady;
+      gyroPermissionTried = true;
+      try {
+        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+          try { await DeviceMotionEvent.requestPermission(); } catch {}
+        }
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+          const res = await DeviceOrientationEvent.requestPermission();
+          if (res !== 'granted') {
+            showToast('Allow motion access to steer');
+            return false;
+          }
+        }
+        addEventListener('deviceorientation', onDeviceOrientation, true);
+        showToast('Tilt phone to steer · tap GYRO to recenter');
+        return true;
+      } catch (err) {
+        console.warn('Gyro unavailable', err);
+        showToast('Gyro unavailable on this device');
+        return false;
+      }
+    }
+
+    async function preferLandscape() {
+      try {
+        if (screen.orientation?.lock) await screen.orientation.lock('landscape');
+      } catch {}
+    }
+
     async function startGame() {
+      // Unlock audio + gyro in the same user gesture (required on iOS)
+      await unlockMobileAudio();
+      await enableGyroSteering();
+      await preferLandscape();
+      updateRotateOverlay();
+
       WORLD.seed = seedFromString(seedInput.value.trim() || 'ENDLESS');
       for (const key of [...WORLD.chunks.keys()]) disposeChunk(key);
       WORLD.lastChunkX = Infinity;
@@ -2096,6 +2289,7 @@
       try {
         await initAudio();
         if (audio?.context.state === 'suspended') await audio.context.resume();
+        await unlockMobileAudio();
       } finally {
         playButton.disabled = false;
         playButton.textContent = 'START ENGINE';
@@ -2105,12 +2299,20 @@
       startMenu.classList.add('hidden');
       pauseMenu.classList.add('hidden');
       hud.classList.add('visible');
-      showToast(`World seed: ${seedInput.value.trim() || 'ENDLESS'}`);
+      showToast(isMobilePlay ? 'Gas + tilt to drive' : `World seed: ${seedInput.value.trim() || 'ENDLESS'}`);
     }
 
     playButton.addEventListener('click', () => { void startGame(); });
-    resumeButton.addEventListener('click', () => setPaused(false));
+    resumeButton.addEventListener('click', () => {
+      void unlockMobileAudio();
+      setPaused(false);
+    });
     seedInput.addEventListener('keydown', event => { if (event.key === 'Enter') void startGame(); });
+
+    // First user gesture unlocks audio (iOS) even before Start
+    const unlockOnce = () => { void unlockMobileAudio(); };
+    addEventListener('pointerdown', unlockOnce, { once: true, capture: true });
+    addEventListener('touchstart', unlockOnce, { once: true, capture: true });
 
     addEventListener('keydown', event => {
       input[event.code] = true;
@@ -2135,12 +2337,27 @@
 
     document.querySelectorAll('.touch-btn').forEach(button => {
       const key = button.dataset.key;
-      const press = event => { event.preventDefault(); input[key] = true; button.classList.add('active'); };
-      const release = event => { event.preventDefault(); input[key] = false; button.classList.remove('active'); };
+      const press = event => {
+        event.preventDefault();
+        void unlockMobileAudio();
+        input[key] = true;
+        button.classList.add('active');
+      };
+      const release = event => {
+        event.preventDefault();
+        input[key] = false;
+        button.classList.remove('active');
+      };
       button.addEventListener('pointerdown', press);
       button.addEventListener('pointerup', release);
       button.addEventListener('pointercancel', release);
       button.addEventListener('pointerleave', release);
+    });
+
+    // Recenter gyro when tapping the badge area / double-tap stats
+    document.querySelector('#gyro-badge')?.addEventListener('pointerdown', () => {
+      gyroReady = false;
+      showToast('Gyro recentered');
     });
 
     addEventListener('resize', () => {
@@ -2148,7 +2365,18 @@
       camera.updateProjectionMatrix();
       renderer.setPixelRatio(Math.min(devicePixelRatio, 1.8));
       renderer.setSize(innerWidth, innerHeight);
+      updateRotateOverlay();
     });
+    addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+        updateRotateOverlay();
+        gyroReady = false; // recalibrate after rotate
+      }, 250);
+    });
+    updateRotateOverlay();
 
     const clock = new THREE.Clock();
     let mapAccumulator = 0;
