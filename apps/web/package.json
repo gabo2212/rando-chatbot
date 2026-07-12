@@ -55,6 +55,7 @@
     "alchemy": "^0.93.12",
     "tailwindcss": "^4.3.2",
     "typescript": "^6",
+    "vercel": "^55.0.0",
     "vitest": "^4.1.10",
     "wrangler": "^4.107.0"
   }

@@ -1,5 +1,4 @@
 import "@chatbot/env/web";
-import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -10,4 +9,13 @@ const nextConfig: NextConfig = {
 
 export default nextConfig;
 
-initOpenNextCloudflareForDev();
+// OpenNext Cloudflare helper is local/CF-only — skip on Vercel.
+if (!process.env.VERCEL) {
+  void import("@opennextjs/cloudflare")
+    .then((mod) => {
+      mod.initOpenNextCloudflareForDev();
+    })
+    .catch(() => {
+      // Optional in environments without the Cloudflare toolchain.
+    });
+}

@@ -1,0 +1,19 @@
+Endless Drive audio
+
+1. engine-loop.mp3
+   Source: user-provided — "1000HP SUPRA (Pure sound) - RacingSystems"
+   Processing: skipped first ~3.2s, trimmed to ~15s constant pull, looped in-game
+   Note: replace with a properly licensed sample before public redistribution if needed.
+
+2. turbo-antilag.mp3
+   Source: user-provided — TX2K17 Supra rolling anti-lag clip
+   Note: replace with a properly licensed sample before public redistribution if needed.
+
+3. drift.mp3
+   Source: user-provided — "Car Drifting Sound Effect - Embraced Sounds"
+   Note: replace with a properly licensed sample before public redistribution if needed.
+
+4. crash.mp3
+   Source: YouTube — https://www.youtube.com/watch?v=sXNZJX_xM2I
+   Title: Car brake and crash Sound Effect - Audio Vampire
+   Note: replace with a properly licensed sample before public redistribution if needed.

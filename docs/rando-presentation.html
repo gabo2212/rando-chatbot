@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RANDO — Project Overview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #070708;
+      --bg-elev: #101114;
+      --line: rgba(232, 255, 120, 0.18);
+      --text: #e8eadf;
+      --muted: #8a8e7c;
+      --accent: #e8ff78;
+      --accent-dim: #a8c84a;
+      --danger: #ff6b4a;
+      --font-display: "Syne", system-ui, sans-serif;
+      --font-mono: "Geist Mono", ui-monospace, monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #000;
+      color: var(--text);
+      font-family: var(--font-mono);
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    .progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      width: 0%;
+      background: var(--accent);
+      z-index: 1000;
+      transition: width 0.35s ease;
+      box-shadow: 0 0 12px rgba(232, 255, 120, 0.45);
+    }
+
+    .slide-deck {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    @media (min-width: 769px) {
+      .slide-deck {
+        max-width: calc(100vh * 16 / 9);
+        max-height: calc(100vw * 9 / 16);
+        margin: auto;
+        position: absolute;
+        inset: 0;
+        border: 1px solid var(--line);
+        background: var(--bg);
+      }
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      padding: clamp(28px, 5vw, 64px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease;
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 0%, rgba(232, 255, 120, 0.06), transparent 55%),
+        radial-gradient(ellipse 50% 40% at 100% 100%, rgba(255, 107, 74, 0.05), transparent 50%),
+        linear-gradient(180deg, #0a0b0c 0%, #070708 100%);
+      overflow: hidden;
+    }
+
+    .slide.active { opacity: 1; visibility: visible; }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(232, 255, 120, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232, 255, 120, 0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.5), transparent 70%);
+    }
+
+    .chrome {
+      position: absolute;
+      top: clamp(16px, 3vw, 28px);
+      left: clamp(20px, 4vw, 48px);
+      right: clamp(20px, 4vw, 48px);
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      z-index: 2;
+    }
+
+    .chrome .dot { color: var(--accent); }
+
+    .slide-content {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      width: 100%;
+      max-width: 100%;
+      gap: clamp(12px, 2vh, 28px);
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent-dim);
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(48px, 9vw, 112px);
+      line-height: 0.92;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+
+    h1 .accent { color: var(--accent); }
+
+    h2 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(28px, 4.5vw, 52px);
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+    }
+
+    .lede {
+      max-width: 42rem;
+      font-size: clamp(14px, 1.6vw, 18px);
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      padding: 10px 16px;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(232, 255, 120, 0.04);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(12px, 2vw, 20px);
+      width: 100%;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(10px, 1.5vw, 16px);
+      width: 100%;
+    }
+
+    @media (max-width: 720px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .slide { padding: 56px 20px 72px; }
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      background: rgba(16, 17, 20, 0.72);
+      padding: clamp(14px, 2vw, 22px);
+      text-align: left;
+      min-height: 0;
+    }
+
+    .card h3 {
+      font-family: var(--font-display);
+      font-size: clamp(16px, 2vw, 22px);
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .card p, .card li {
+      font-size: clamp(12px, 1.25vw, 14px);
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    .card ul { list-style: none; display: grid; gap: 6px; }
+    .card li::before {
+      content: "› ";
+      color: var(--accent-dim);
+    }
+
+    .arch {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: clamp(16px, 3vw, 32px);
+      align-items: stretch;
+      width: 100%;
+    }
+
+    @media (max-width: 800px) {
+      .arch { grid-template-columns: 1fr; }
+    }
+
+    .flow {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .flow-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .node {
+      border: 1px solid var(--line);
+      background: var(--bg-elev);
+      padding: 10px 14px;
+      color: var(--text);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+
+    .node.hl {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(232, 255, 120, 0.15) inset;
+    }
+
+    .arrow { color: var(--accent-dim); font-size: 14px; }
+
+    .stack-list {
+      display: grid;
+      gap: 10px;
+      text-align: left;
+    }
+
+    .stack-item {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 10px;
+      font-size: 13px;
+    }
+
+    .stack-item strong {
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 11px;
+      padding-top: 2px;
+    }
+
+    .stack-item span { color: var(--muted); line-height: 1.45; }
+
+    .title-slide .slide-content {
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding-bottom: 8px;
+    }
+
+    .big-meta {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .link {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(232, 255, 120, 0.35);
+      word-break: break-all;
+    }
+
+    .closing h2 { max-width: 16ch; }
+
+    .shots {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(12px, 2vw, 20px);
+      width: 100%;
+      align-items: start;
+    }
+
+    @media (max-width: 720px) {
+      .shots { grid-template-columns: 1fr; }
+    }
+
+    .shot {
+      border: 1px solid var(--line);
+      background: #000;
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .shot img {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      object-position: top center;
+    }
+
+    .shot figcaption {
+      padding: 10px 12px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+    }
+
+    .shot figcaption span {
+      color: var(--accent);
+    }
+
+    .nav-controls {
+      position: fixed;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 1000;
+      background: rgba(7, 7, 8, 0.75);
+      border: 1px solid var(--line);
+      padding: 8px 14px;
+      backdrop-filter: blur(8px);
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text);
+      width: 36px; height: 36px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 14px;
+    }
+
+    .nav-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .slide-counter {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      min-width: 64px;
+      text-align: center;
+    }
+
+    .hint {
+      position: fixed;
+      bottom: 28px;
+      right: 24px;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(138, 142, 124, 0.7);
+      z-index: 999;
+    }
+
+    @media (max-width: 640px) {
+      .hint { display: none; }
+      .stack-item { grid-template-columns: 1fr; gap: 4px; }
+    }
+
+    .active .anim { animation: rise 0.55s ease both; }
+    .active .anim.d2 { animation-delay: 0.08s; }
+    .active .anim.d3 { animation-delay: 0.16s; }
+    .active .anim.d4 { animation-delay: 0.24s; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress-bar" id="progressBar"></div>
+
+  <div class="slide-deck">
+    <!-- 1. Title -->
+    <section class="slide title-slide active">
+      <div class="chrome"><span><span class="dot">●</span> SYS.ACT</span><span>CHATBOT PROTOCOL · V1.0.0</span><span>EST. 2025</span></div>
+      <div class="slide-content">
+        <p class="eyebrow anim">Project overview</p>
+        <h1 class="anim d2">RANDO<span class="accent">.</span></h1>
+        <p class="lede anim d3">AI chat with RAG and games.</p>
+        <div class="big-meta anim d4">
+          <span>Frame: ∞</span>
+          <span>Stack: Better-T</span>
+          <span>Deploy: Vercel</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Pitch -->
+    <section class="slide">
+      <div class="chrome"><span>02 / TECH</span><span>BETTER-T-STACK</span></div>
+      <div class="slide-content">
+        <p class="eyebrow anim">Under the hood</p>
+        <h2 class="anim d2">How it's built</h2>
+        <p class="lede anim d3">npm monorepo with Turborepo. Next.js app talks to Postgres, OpenAI, and local Ollama for embeddings.</p>
+        <div class="grid-2 anim d4" style="margin-top: 4px;">
+          <div class="card">
+            <h3>App layer</h3>
+            <ul>
+              <li>Next.js 16 App Router (port 3001)</li>
+              <li>React 19 + Tailwind 4</li>
+              <li>tRPC for chat CRUD</li>
+              <li>REST for AI stream, docs, escape, auth</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Data &amp; AI</h3>
+            <ul>
+              <li>Postgres 16 + pgvector (Docker)</li>
+              <li>Drizzle ORM · Better Auth</li>
+              <li>OpenAI for chat streaming</li>
+              <li>Ollama <code>nomic-embed-text</code> for RAG</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Features -->
+    <section class="slide">
+      <div class="chrome"><span>03 / FEATURES</span><span>CHAT · DOCS · DRIVE</span></div>
+      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
+        <p class="eyebrow anim">Product surface</p>
+        <h2 class="anim d2" style="margin-bottom: 8px;">What ships today</h2>
+        <div class="grid-2 anim d3">
+          <div class="card">
+            <h3>AI Chat</h3>
+            <ul>
+              <li>Streaming replies via AI SDK + OpenAI</li>
+              <li>Persistent chats &amp; messages in Postgres</li>
+              <li>Tool calling: document search + skills</li>
+              <li>Routes: <code>/ai</code>, <code>/ai/[chatId]</code></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Documents / RAG</h3>
+            <ul>
+              <li>Upload PDF, DOCX, text, code</li>
+              <li>Chunk → embed → pgvector HNSW</li>
+              <li>Ollama <code>nomic-embed-text</code> (768-d)</li>
+              <li>Grounded answers in chat</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Auth &amp; embed</h3>
+            <ul>
+              <li>Better Auth email / password</li>
+              <li>Session-gated chats &amp; docs</li>
+              <li>Embeddable widget → <code>/embed</code></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Play modes</h3>
+            <ul>
+              <li>Escape room: THE LAST TERMINAL</li>
+              <li>Slash cmds: <code>/escape</code> <code>/exit</code> <code>/help</code></li>
+              <li>Endless Drive at <code>/drive</code></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Screenshots -->
+    <section class="slide">
+      <div class="chrome"><span>04 / UI</span><span>LIVE CAPTURES</span></div>
+      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
+        <p class="eyebrow anim">Product look</p>
+        <h2 class="anim d2" style="margin-bottom: 8px;">From the live site</h2>
+        <div class="shots anim d3">
+          <figure class="shot">
+            <img src="assets/rando-home.png" alt="RANDO landing page with ENDLESS CHATTER hero" />
+            <figcaption><span>/</span> Landing — ENDLESS CHATTER</figcaption>
+          </figure>
+          <figure class="shot">
+            <img src="assets/rando-drive.png" alt="Endless Drive low-poly world in browser" />
+            <figcaption><span>/drive</span> — Endless Drive in-game</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Architecture -->
+    <section class="slide">
+      <div class="chrome"><span>05 / ARCHITECTURE</span><span>MONOREPO</span></div>
+      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
+        <p class="eyebrow anim">System shape</p>
+        <h2 class="anim d2">Better-T-Stack monorepo</h2>
+        <div class="arch anim d3">
+          <div class="flow">
+            <div class="flow-row">
+              <span class="node hl">apps/web</span>
+              <span class="arrow">→</span>
+              <span class="node">Next.js 16 App Router</span>
+            </div>
+            <div class="flow-row">
+              <span class="node">tRPC</span>
+              <span class="arrow">+</span>
+              <span class="node">REST</span>
+              <span class="arrow">→</span>
+              <span class="node">/api/ai · docs · escape · auth</span>
+            </div>
+            <div class="flow-row">
+              <span class="node hl">@chatbot/db</span>
+              <span class="arrow">→</span>
+              <span class="node">Postgres + pgvector :5433</span>
+            </div>
+            <div class="flow-row">
+              <span class="node">OpenAI chat</span>
+              <span class="arrow">·</span>
+              <span class="node">Ollama embeddings</span>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Packages</h3>
+            <ul>
+              <li><code>@chatbot/api</code> — tRPC routers</li>
+              <li><code>@chatbot/auth</code> — Better Auth</li>
+              <li><code>@chatbot/db</code> — Drizzle schemas</li>
+              <li><code>@chatbot/ui</code> — shared UI</li>
+              <li><code>@chatbot/env</code> — typed env</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Tech stack -->
+    <section class="slide">
+      <div class="chrome"><span>06 / STACK</span><span>NPM WORKSPACES · TURBO</span></div>
+      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
+        <p class="eyebrow anim">Under the hood</p>
+        <h2 class="anim d2">Chosen tools</h2>
+        <div class="stack-list anim d3">
+          <div class="stack-item">
+            <strong>Frontend</strong>
+            <span>Next.js 16 · React 19 · Tailwind 4 · Geist Mono UI</span>
+          </div>
+          <div class="stack-item">
+            <strong>API</strong>
+            <span>tRPC 11 · TanStack Query · Zod 4 · AI SDK 7</span>
+          </div>
+          <div class="stack-item">
+            <strong>Data</strong>
+            <span>Drizzle · Postgres 16 + pgvector · Docker Compose</span>
+          </div>
+          <div class="stack-item">
+            <strong>AI</strong>
+            <span>OpenAI for chat · Ollama nomic-embed-text for RAG</span>
+          </div>
+          <div class="stack-item">
+            <strong>Auth</strong>
+            <span>Better Auth 1.6 · email/password sessions</span>
+          </div>
+          <div class="stack-item">
+            <strong>Ship</strong>
+            <span>Turborepo · Vitest · Vercel production deploy</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Play modes deep dive -->
+    <section class="slide">
+      <div class="chrome"><span>07 / PLAY</span><span>EMBRACE THE MADNESS</span></div>
+      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
+        <p class="eyebrow anim">Extra surfaces</p>
+        <h2 class="anim d2">Games inside the protocol</h2>
+        <div class="grid-2 anim d3">
+          <div class="card">
+            <h3>THE LAST TERMINAL</h3>
+            <p>In-chat escape room narrated by A.R.I.A. Deterministic engine, persisted runs, slash commands, and AI narration over a sealed facility puzzle.</p>
+          </div>
+          <div class="card">
+            <h3>ENDLESS DRIVE</h3>
+            <p>Full-bleed iframe racer at <code>/drive</code> — procedural low-poly world, nitro, power-slide drift, night headlights, seed worlds (DRIVE-2049).</p>
+          </div>
+        </div>
+        <p class="lede anim d4" style="margin-top: 4px;">Built as a standalone Three.js (r185) WebGL page in <code>public/games/</code>, embedded via iframe on <code>/drive</code>. Chunked terrain from a string seed hash, custom sky shader, day/night cycle, Web Audio engine loops — no React inside the game loop.</p>
+      </div>
+    </section>
+
+    <!-- 7. Close -->
+    <section class="slide closing">
+      <div class="chrome"><span>08 / LIVE</span><span>FRAME: ∞</span></div>
+      <div class="slide-content">
+        <p class="eyebrow anim">Status</p>
+        <h2 class="anim d2">Live on Vercel.</h2>
+        <p class="lede anim d3">
+          <a class="link" href="https://chatbot-ecru-two-16.vercel.app" target="_blank" rel="noopener">chatbot-ecru-two-16.vercel.app</a>
+        </p>
+        <div class="cta-row anim d4">
+          <span class="pill">Repo: gabo2212/rando-chatbot</span>
+          <span class="pill">Local: npm run dev :3001</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="nav-controls">
+    <button class="nav-btn" type="button" onclick="prevSlide()" aria-label="Previous">←</button>
+    <span class="slide-counter"><span id="current">1</span> / <span id="total">7</span></span>
+    <button class="nav-btn" type="button" onclick="nextSlide()" aria-label="Next">→</button>
+  </div>
+  <div class="hint">← → / space</div>
+
+  <script>
+    let current = 1;
+    const slides = () => document.querySelectorAll(".slide");
+    const total = () => slides().length;
+    document.getElementById("total").textContent = total();
+
+    function showSlide(n) {
+      const t = total();
+      if (n < 1) n = 1;
+      if (n > t) n = t;
+      current = n;
+      slides().forEach((s, i) => s.classList.toggle("active", i === n - 1));
+      document.getElementById("current").textContent = n;
+      document.getElementById("progressBar").style.width = (n / t) * 100 + "%";
+    }
+
+    function nextSlide() { showSlide(current + 1); }
+    function prevSlide() { showSlide(current - 1); }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); nextSlide(); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); prevSlide(); }
+    });
+
+    showSlide(1);
+  </script>
+</body>
+</html>
