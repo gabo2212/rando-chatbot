@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 // ─── RANDO Council BS generator (Grok-backed, token-frugal) ─────────────────
 // One upstream call yields a whole batch of one-liners that are pooled and
@@ -115,11 +116,12 @@ async function callGrok(): Promise<string[]> {
   return out;
 }
 
-function maybeRefill(): void {
-  if (!API_KEY) return;
-  if (pool.refilling) return;
-  if (pool.lines.length >= POOL_LOW) return;
-  if (Date.now() - pool.lastRefill < REFILL_COOLDOWN_MS) return;
+// Starts a refill if the cooldown has elapsed and one isn't already running.
+// Returns the in-flight promise (so callers can await it) or null.
+function startRefill(): Promise<void> | null {
+  if (!API_KEY) return null;
+  if (pool.refilling) return pool.refilling;
+  if (Date.now() - pool.lastRefill < REFILL_COOLDOWN_MS) return null;
 
   pool.lastRefill = Date.now();
   pool.refilling = (async () => {
@@ -137,14 +139,28 @@ function maybeRefill(): void {
       pool.refilling = null;
     }
   })();
+  return pool.refilling;
 }
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const n = Math.max(1, Math.min(20, Number(url.searchParams.get("n")) || 8));
 
-  // Kick a background refill if we're low; don't await it so responses stay snappy.
-  maybeRefill();
+  // Serverless freezes the instance once we respond, so background work isn't
+  // reliable. If we can't serve the request from the pool, await a refill now.
+  if (pool.lines.length < n) {
+    const pending = startRefill();
+    if (pending) {
+      try {
+        await pending;
+      } catch {
+        /* fall through — client uses its local fallback */
+      }
+    }
+  } else if (pool.lines.length < POOL_LOW) {
+    // Enough to serve; opportunistically top up (best-effort on warm instances).
+    startRefill();
+  }
 
   const lines = pool.lines.splice(0, n);
 
