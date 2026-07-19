@@ -797,9 +797,36 @@
       ],
     };
     const pick = (a) => a[Math.floor(Math.random() * a.length)];
-    function makeBS() {
+    function makeLocalBS() {
       if (Math.random() < 0.35) return pick(BS.solo);
       return `${pick(BS.open)}, ${pick(BS.subj)} ${pick(BS.verb)} ${pick(BS.obj)} \u2014 ${pick(BS.close)}`;
+    }
+
+    // Grok-backed lines with a local fallback. We keep a small client cache and
+    // only refetch when it runs low, so the network barely gets touched.
+    const councilCache = [];
+    let councilFetching = false;
+    let councilApiDead = false;
+    async function refillCouncilCache() {
+      if (councilFetching || councilApiDead || councilCache.length > 3) return;
+      councilFetching = true;
+      try {
+        const res = await fetch('/api/council?n=15', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.configured === false) councilApiDead = true; // no key → stop asking
+          if (Array.isArray(data?.lines)) {
+            for (const l of data.lines) {
+              if (typeof l === 'string' && l.trim()) councilCache.push(l.trim());
+            }
+          }
+        }
+      } catch { /* offline / static host → local fallback */ }
+      councilFetching = false;
+    }
+    function makeBS() {
+      if (councilCache.length <= 3) refillCouncilCache();
+      return councilCache.length ? councilCache.shift() : makeLocalBS();
     }
 
     const npcBubble = document.querySelector('#npc-bubble');
