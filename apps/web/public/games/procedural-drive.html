@@ -136,6 +136,42 @@
     }
     #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+    #npc-bubble {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 6;
+      max-width: 260px;
+      padding: 10px 13px 11px;
+      border-radius: 14px 14px 14px 3px;
+      background: rgba(10, 14, 20, 0.82);
+      border: 1px solid rgba(232, 255, 120, 0.35);
+      box-shadow: 0 10px 34px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(9px);
+      color: #f2f5e6;
+      font-family: "Geist Mono", ui-monospace, monospace;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.18s ease;
+      will-change: transform;
+    }
+    #npc-bubble.show { opacity: 1; }
+    #npc-bubble .npc-name {
+      display: block;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #e8ff78;
+      margin-bottom: 4px;
+    }
+    #npc-bubble .npc-line {
+      display: block;
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 500;
+    }
+
     .overlay {
       position: fixed;
       inset: 0;
@@ -379,6 +415,11 @@
 <body>
   <div id="game"></div>
   <div id="vignette"></div>
+
+  <div id="npc-bubble" aria-hidden="true">
+    <span class="npc-name"></span>
+    <span class="npc-line"></span>
+  </div>
 
   <div id="hud">
     <section id="stats" class="glass">
@@ -716,6 +757,138 @@
       return color;
     }
 
+    // ——— The RANDO Council: meme cutouts scattered across the map that spew BS ———
+    const COUNCIL = [
+      { file: 'meme-csclub.png',  name: 'The CodeMaxer', aspect: 0.80 },
+      { file: 'meme-myman.png',   name: 'My Man',        aspect: 0.60 },
+      { file: 'meme-denji.png',   name: 'Framemoged',    aspect: 0.88 },
+      { file: 'meme-charlie.png', name: 'The Oracle',    aspect: 1.12 },
+    ];
+    const COUNCIL_HEIGHT = 8.5;
+    const councilTexLoader = new THREE.TextureLoader();
+    const councilMaterials = COUNCIL.map((c) => {
+      const tex = councilTexLoader.load(`/games/npc/${c.file}`);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 4;
+      return new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, toneMapped: false, transparent: false });
+    });
+    const councilGeometries = COUNCIL.map((c) =>
+      new THREE.PlaneGeometry(COUNCIL_HEIGHT * c.aspect, COUNCIL_HEIGHT)
+    );
+    const councilBackMaterial = new THREE.MeshBasicMaterial({ color: 0x0a0e14, side: THREE.DoubleSide, toneMapped: false });
+
+    const BS = {
+      open: ['Bro', 'Chat', 'On god', 'Real talk', 'Lowkey', 'Unironically', 'Hear me out', 'Nah because', 'Respectfully', 'Deadass', 'Not gonna lie', 'Trust'],
+      subj: ['gyro steering', 'the FYP algorithm', 'my clavicle', 'this framerate', 'generative AI', 'the bonemash', 'LeetCode', 'my sigma routine', 'the git blame', 'recursion', 'the metaverse', 'your commit history', 'dark mode', 'the blockchain', 'this Nissan Leaf', 'the drift score'],
+      verb: ['got framemoged by', 'is basically', 'peer-reviews', 'hard-carries', 'mogs', 'gatekeeps', 'bricks', 'speedruns', 'gigachads on', 'out-scales', 'refactors', 'weaponizes'],
+      obj: ['a for-loop', 'raw ambition', 'zero unit tests', 'the friendship', 'my sleep schedule', 'undefined behavior', 'the entire monorepo', 'a single div', 'pure vibes', 'the CodeMaxer arc', 'a merge conflict', 'npm install'],
+      close: ["and that's the lore.", 'no notes.', 'stay locked in.', "that's just physics.", 'we ball.', 'embrace the madness.', 'it is what it is.', 'screenshot this.', "you're welcome.", 'frame: infinity.', 'anyway, floor it.'],
+      solo: [
+        'I framemogged the physics engine and it thanked me.',
+        'Bonemash the hardware. Do NOT ask why.',
+        'Every NPC here is me. That includes you now.',
+        'I got a 400 on my clavicle but we move.',
+        'The road is procedural. So is my confidence.',
+        'Proving that getting framemoged was generative AI, one wipeout at a time.',
+        'Real CodeMaxers merge to main on a Friday.',
+        'I don\u2019t drift, I renegotiate with traction.',
+        'Nitro is just cope for people who fear commitment.',
+        'This whole map is held together by one very tired for-loop.',
+      ],
+    };
+    const pick = (a) => a[Math.floor(Math.random() * a.length)];
+    function makeBS() {
+      if (Math.random() < 0.35) return pick(BS.solo);
+      return `${pick(BS.open)}, ${pick(BS.subj)} ${pick(BS.verb)} ${pick(BS.obj)} \u2014 ${pick(BS.close)}`;
+    }
+
+    const npcBubble = document.querySelector('#npc-bubble');
+    const npcBubbleName = npcBubble?.querySelector('.npc-name');
+    const npcBubbleLine = npcBubble?.querySelector('.npc-line');
+    const _councilProj = new THREE.Vector3();
+    let councilTalker = null;
+    let councilLine = '';
+    let councilLineTimer = 0;
+
+    function showCouncilBubble(board, strength) {
+      if (!npcBubble) return;
+      _councilProj.set(board.wx, board.baseY + COUNCIL_HEIGHT + 1.4, board.wz);
+      _councilProj.project(camera);
+      if (_councilProj.z > 1) { hideCouncilBubble(); return; }
+      const sx = (_councilProj.x * 0.5 + 0.5) * innerWidth;
+      const sy = (-_councilProj.y * 0.5 + 0.5) * innerHeight;
+      npcBubble.style.transform = `translate(${Math.round(sx)}px, ${Math.round(sy)}px) translate(-10px, -100%)`;
+      npcBubble.style.opacity = String(0.35 + strength * 0.65);
+      if (npcBubbleName.textContent !== COUNCIL[board.picIndex].name) {
+        npcBubbleName.textContent = COUNCIL[board.picIndex].name;
+      }
+      if (npcBubbleLine.textContent !== councilLine) npcBubbleLine.textContent = councilLine;
+      npcBubble.classList.add('show');
+    }
+
+    function hideCouncilBubble() {
+      if (!npcBubble) return;
+      npcBubble.classList.remove('show');
+      npcBubble.style.opacity = '0';
+    }
+
+    function updateCouncil(dt) {
+      const camX = camera.position.x;
+      const camZ = camera.position.z;
+      let nearest = null;
+      let nearestDist = Infinity;
+      for (const chunk of WORLD.chunks.values()) {
+        if (!chunk.council) continue;
+        for (const board of chunk.council) {
+          board.mesh.rotation.y = Math.atan2(camX - board.wx, camZ - board.wz);
+          const d = Math.hypot(car.position.x - board.wx, car.position.z - board.wz);
+          if (d < nearestDist) { nearestDist = d; nearest = board; }
+        }
+      }
+      const TALK_RADIUS = 30;
+      if (nearest && nearestDist < TALK_RADIUS) {
+        if (councilTalker !== nearest) {
+          councilTalker = nearest;
+          councilLine = makeBS();
+          councilLineTimer = 3.6 + Math.random() * 2.2;
+        }
+        councilLineTimer -= dt;
+        if (councilLineTimer <= 0) {
+          councilLine = makeBS();
+          councilLineTimer = 3.6 + Math.random() * 2.2;
+        }
+        showCouncilBubble(nearest, clamp(1 - nearestDist / TALK_RADIUS, 0, 1));
+      } else {
+        councilTalker = null;
+        hideCouncilBubble();
+      }
+    }
+
+    function spawnCouncil(group, rng, worldCenterX, worldCenterZ) {
+      const size = WORLD.chunkSize;
+      const boards = [];
+      const count = gigaSpeed ? (rng() < 0.4 ? 1 : 0) : 1 + (rng() < 0.5 ? 1 : 0);
+      let attempts = 0;
+      while (boards.length < count && attempts++ < count * 10) {
+        const lx = (rng() - 0.5) * (size - 16);
+        const lz = (rng() - 0.5) * (size - 16);
+        const wx = worldCenterX + lx;
+        const wz = worldCenterZ + lz;
+        const h = terrainHeight(wx, wz);
+        if (Math.hypot(wx, wz) < 40 || h < -3 || terrainSlope(wx, wz) > 0.6) continue;
+        const picIndex = Math.floor(rng() * COUNCIL.length) % COUNCIL.length;
+        const mesh = new THREE.Mesh(councilGeometries[picIndex], councilMaterials[picIndex]);
+        mesh.position.set(lx, h + COUNCIL_HEIGHT / 2, lz);
+        const back = new THREE.Mesh(councilGeometries[picIndex], councilBackMaterial);
+        back.position.z = -0.06;
+        back.scale.set(1.06, 1.06, 1);
+        mesh.add(back);
+        group.add(mesh);
+        boards.push({ mesh, wx, wz, baseY: h, picIndex });
+      }
+      return boards;
+    }
+
     function createChunk(cx, cz) {
       const size = WORLD.chunkSize;
       // Coarser terrain at GIGA SPEED so we can stream more chunks ahead
@@ -886,8 +1059,9 @@
       }
 
       group.add(trunks, leaves, rocks);
+      const council = spawnCouncil(group, rng, worldCenterX, worldCenterZ);
       scene.add(group);
-      WORLD.chunks.set(`${cx},${cz}`, { group, geometry, trunks, leaves, rocks, obstacles, jumps, cx, cz });
+      WORLD.chunks.set(`${cx},${cz}`, { group, geometry, trunks, leaves, rocks, obstacles, jumps, council, cx, cz });
     }
 
     function disposeChunk(key) {
@@ -2759,6 +2933,7 @@
         updateDust(dt);
         updateLighting(dt);
         updateCamera(dt);
+        updateCouncil(dt);
         updateHud();
         updateAudio();
         mapAccumulator += dt;
@@ -2766,6 +2941,7 @@
       } else {
         sky.rotation.y += dt * 0.003;
         updateAudio();
+        hideCouncilBubble();
       }
 
       renderer.render(scene, camera);
