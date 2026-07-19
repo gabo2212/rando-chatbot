@@ -804,13 +804,21 @@
       return `${pick(BS.open)}, ${pick(BS.subj)} ${pick(BS.verb)} ${pick(BS.obj)} \u2014 ${pick(BS.close)}`;
     }
 
-    // Grok-backed lines with a local fallback. We keep a small client cache and
-    // only refetch when it runs low, so the network barely gets touched.
-    const councilCache = [];
+    // Grok-backed lines with a local fallback. We keep a client cache of fresh
+    // lines plus a "seen" ring we can recycle, so the network barely gets touched:
+    //  - fetches happen in the background, batched, and throttled client-side
+    //  - approaching a pic warms the cache in advance (no-op when already stocked)
+    //  - lingering recycles already-fetched lines instead of firing new calls
+    const councilCache = [];   // fresh, unseen lines
+    const councilSeen = [];     // previously shown lines (recycle pool)
     let councilFetching = false;
     let councilApiDead = false;
+    let councilLastFetch = 0;
     async function refillCouncilCache() {
       if (councilFetching || councilApiDead || councilCache.length > 3) return;
+      const now = performance.now();
+      if (now - councilLastFetch < 2500) return; // client-side throttle
+      councilLastFetch = now;
       councilFetching = true;
       try {
         const res = await fetch('/api/council?n=15', { cache: 'no-store' });
@@ -826,9 +834,22 @@
       } catch { /* offline / static host → local fallback */ }
       councilFetching = false;
     }
+    // Warm the cache ahead of an encounter without ever forcing a call when stocked.
+    function prefetchCouncil() {
+      if (councilCache.length <= 4) refillCouncilCache();
+    }
+    // Pull the next line: fresh > recycled > local. Only ever called once the
+    // player actually stops at a pic, so fly-bys cost nothing.
     function makeBS() {
-      if (councilCache.length <= 3) refillCouncilCache();
-      return councilCache.length ? councilCache.shift() : makeLocalBS();
+      prefetchCouncil();
+      if (councilCache.length) {
+        const line = councilCache.shift();
+        councilSeen.push(line);
+        if (councilSeen.length > 40) councilSeen.shift();
+        return line;
+      }
+      if (councilSeen.length) return councilSeen[(Math.random() * councilSeen.length) | 0];
+      return makeLocalBS();
     }
 
     const npcBubble = document.querySelector('#npc-bubble');
@@ -838,6 +859,7 @@
     let councilTalker = null;
     let councilLine = '';
     let councilLineTimer = 0;
+    let councilDwell = 0;
 
     function showCouncilBubble(board, strength) {
       if (!npcBubble) return;
@@ -861,6 +883,13 @@
       npcBubble.style.opacity = '0';
     }
 
+    // Tuning: talk only when you actually stop; fly-bys stay silent (and free).
+    const TALK_RADIUS = 26;      // how close to start talking
+    const PREFETCH_RADIUS = 72;  // warm the cache while approaching
+    const DWELL_TIME = 0.3;      // seconds you must linger near before it talks
+    const TALK_SPEED_START = 12; // m/s (~43 km/h) — must be slower than this to begin
+    const TALK_SPEED_KEEP = 22;  // m/s (~79 km/h) — hysteresis so it doesn't flicker
+
     function updateCouncil(dt) {
       const camX = camera.position.x;
       const camZ = camera.position.z;
@@ -874,23 +903,41 @@
           if (d < nearestDist) { nearestDist = d; nearest = board; }
         }
       }
-      const TALK_RADIUS = 30;
-      if (nearest && nearestDist < TALK_RADIUS) {
-        if (councilTalker !== nearest) {
-          councilTalker = nearest;
-          councilLine = makeBS();
-          councilLineTimer = 3.6 + Math.random() * 2.2;
-        }
+
+      const speed = Math.abs(car.speed);
+
+      // Warm the cache a couple lines ahead as you near any pic (only fetches if low).
+      if (nearest && nearestDist < PREFETCH_RADIUS) prefetchCouncil();
+
+      const talking = councilTalker && councilTalker === nearest;
+      const speedOk = speed < (talking ? TALK_SPEED_KEEP : TALK_SPEED_START);
+      const inRange = nearest && nearestDist < TALK_RADIUS;
+
+      if (!inRange || !speedOk) {
+        // Out of range, or flying by too fast → stay silent and reset dwell.
+        councilTalker = null;
+        councilDwell = 0;
+        hideCouncilBubble();
+        return;
+      }
+
+      if (!talking) {
+        // Near and slow, but must linger briefly before the yap starts.
+        councilDwell += dt;
+        if (councilDwell < DWELL_TIME) { hideCouncilBubble(); return; }
+        councilTalker = nearest;
+        councilDwell = 0;
+        councilLine = makeBS();
+        councilLineTimer = 3.6 + Math.random() * 2.2;
+      } else {
         councilLineTimer -= dt;
         if (councilLineTimer <= 0) {
           councilLine = makeBS();
           councilLineTimer = 3.6 + Math.random() * 2.2;
         }
-        showCouncilBubble(nearest, clamp(1 - nearestDist / TALK_RADIUS, 0, 1));
-      } else {
-        councilTalker = null;
-        hideCouncilBubble();
       }
+
+      showCouncilBubble(nearest, clamp(1 - nearestDist / TALK_RADIUS, 0, 1));
     }
 
     function spawnCouncil(group, rng, worldCenterX, worldCenterZ) {
@@ -2841,6 +2888,7 @@
       startMenu.classList.add('hidden');
       pauseMenu.classList.add('hidden');
       hud.classList.add('visible');
+      prefetchCouncil(); // one precall so the first stop shows instantly
       showToast(isMobilePlay ? 'Tilt like a wheel · GYRO bar should move' : `World seed: ${seedInput.value.trim() || 'ENDLESS'}`);
     }
 
