@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RANDO — Project Overview</title>
+  <title>RANDO — Discord Connection</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
@@ -17,6 +17,7 @@
       --accent: #e8ff78;
       --accent-dim: #a8c84a;
       --danger: #ff6b4a;
+      --discord: #5865f2;
       --font-display: "Syne", system-ui, sans-serif;
       --font-mono: "Geist Mono", ui-monospace, monospace;
     }
@@ -72,7 +73,7 @@
       transition: opacity 0.4s ease;
       background:
         radial-gradient(ellipse 80% 60% at 10% 0%, rgba(232, 255, 120, 0.06), transparent 55%),
-        radial-gradient(ellipse 50% 40% at 100% 100%, rgba(255, 107, 74, 0.05), transparent 50%),
+        radial-gradient(ellipse 50% 40% at 100% 100%, rgba(88, 101, 242, 0.08), transparent 50%),
         linear-gradient(180deg, #0a0b0c 0%, #070708 100%);
       overflow: hidden;
     }
@@ -129,13 +130,14 @@
     h1 {
       font-family: var(--font-display);
       font-weight: 800;
-      font-size: clamp(48px, 9vw, 112px);
+      font-size: clamp(42px, 8vw, 96px);
       line-height: 0.92;
       letter-spacing: -0.03em;
       color: var(--text);
     }
 
     h1 .accent { color: var(--accent); }
+    h1 .blurple { color: #9aa3ff; }
 
     h2 {
       font-family: var(--font-display);
@@ -215,19 +217,6 @@
       color: var(--accent-dim);
     }
 
-    .arch {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: clamp(16px, 3vw, 32px);
-      align-items: stretch;
-      width: 100%;
-    }
-
-    @media (max-width: 800px) {
-      .arch { grid-template-columns: 1fr; }
-    }
-
-    /* ---- Architecture diagram ---- */
     .diagram {
       display: flex;
       flex-direction: column;
@@ -312,32 +301,6 @@
       color: var(--accent);
     }
 
-    .pkg-rail {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--line);
-    }
-
-    .pkg-rail .rail-label {
-      font-size: 10px;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--accent-dim);
-      margin-right: 4px;
-    }
-
-    .pkg-rail code {
-      border: 1px solid var(--line);
-      background: rgba(232, 255, 120, 0.04);
-      padding: 5px 9px;
-      font-size: 11px;
-      color: var(--accent);
-    }
-
     @media (max-width: 720px) {
       .layer { grid-template-columns: 1fr; gap: 6px; }
       .layer-tag {
@@ -350,63 +313,6 @@
       }
       .connector { margin-left: 12px; }
     }
-
-    .flow {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      font-size: 13px;
-    }
-
-    .flow-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .node {
-      border: 1px solid var(--line);
-      background: var(--bg-elev);
-      padding: 10px 14px;
-      color: var(--text);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      font-size: 11px;
-    }
-
-    .node.hl {
-      border-color: var(--accent);
-      color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(232, 255, 120, 0.15) inset;
-    }
-
-    .arrow { color: var(--accent-dim); font-size: 14px; }
-
-    .stack-list {
-      display: grid;
-      gap: 10px;
-      text-align: left;
-    }
-
-    .stack-item {
-      display: grid;
-      grid-template-columns: 120px 1fr;
-      gap: 12px;
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 10px;
-      font-size: 13px;
-    }
-
-    .stack-item strong {
-      color: var(--accent);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      font-size: 11px;
-      padding-top: 2px;
-    }
-
-    .stack-item span { color: var(--muted); line-height: 1.45; }
 
     .title-slide .slide-content {
       align-items: flex-start;
@@ -432,14 +338,14 @@
       word-break: break-all;
     }
 
-    .closing h2 { max-width: 16ch; }
+    .closing h2 { max-width: 18ch; }
 
     .shots {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: clamp(12px, 2vw, 20px);
       width: 100%;
-      align-items: start;
+      align-items: stretch;
     }
 
     @media (max-width: 720px) {
@@ -451,15 +357,25 @@
       background: #000;
       overflow: hidden;
       text-align: left;
+      display: flex;
+      flex-direction: column;
     }
 
     .shot img {
       display: block;
       width: 100%;
-      height: auto;
-      aspect-ratio: 16 / 10;
+      flex: 1;
+      min-height: 0;
+      aspect-ratio: 9 / 14;
       object-fit: cover;
       object-position: top center;
+      background: #111;
+    }
+
+    .shot.wide img {
+      aspect-ratio: 16 / 11;
+      object-fit: contain;
+      object-position: center top;
     }
 
     .shot figcaption {
@@ -474,47 +390,6 @@
     .shot figcaption span {
       color: var(--accent);
     }
-
-    .gallery {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: clamp(8px, 1.2vw, 14px);
-      width: 100%;
-      align-items: stretch;
-    }
-
-    @media (max-width: 720px) {
-      .gallery { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    .frame {
-      border: 1px solid var(--line);
-      background: #000;
-      overflow: hidden;
-      text-align: left;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .frame img {
-      display: block;
-      width: 100%;
-      height: 100%;
-      aspect-ratio: 3 / 4;
-      object-fit: cover;
-      object-position: top center;
-    }
-
-    .frame figcaption {
-      padding: 8px 10px;
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      border-top: 1px solid var(--line);
-    }
-
-    .frame figcaption span { color: var(--accent); }
 
     .use-grid {
       display: grid;
@@ -609,7 +484,6 @@
 
     @media (max-width: 640px) {
       .hint { display: none; }
-      .stack-item { grid-template-columns: 1fr; gap: 4px; }
     }
 
     .active .anim { animation: rise 0.55s ease both; }
@@ -621,6 +495,12 @@
       from { opacity: 0; transform: translateY(18px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.92em;
+      color: var(--accent);
+    }
   </style>
 </head>
 <body>
@@ -629,108 +509,102 @@
   <div class="slide-deck">
     <!-- 1. Title -->
     <section class="slide title-slide active">
-      <div class="chrome"><span><span class="dot">●</span> SYS.ACT</span><span>CHATBOT PROTOCOL · V1.0.0</span><span>EST. 2025</span></div>
+      <div class="chrome"><span><span class="dot">●</span> SYS.ACT</span><span>DISCORD PROTOCOL · V1.0.0</span><span>EST. 2026</span></div>
       <div class="slide-content">
-        <p class="eyebrow anim">Project overview</p>
-        <h1 class="anim d2">RANDO<span class="accent">.</span></h1>
-        <p class="lede anim d3">AI chat with RAG and games.</p>
+        <p class="eyebrow anim">Integration overview</p>
+        <h1 class="anim d2">RANDO<span class="accent"> × </span><span class="blurple">Discord</span></h1>
+        <p class="lede anim d3">Connect your account. Install the bot. Drive Discord from chat.</p>
         <div class="big-meta anim d4">
-          <span>Frame: ∞</span>
-          <span>Stack: Better-T</span>
-          <span>Deploy: Vercel</span>
+          <span>OAuth: identify + guilds</span>
+          <span>Bot: official app only</span>
+          <span>Confirm: in-chat</span>
         </div>
       </div>
     </section>
 
     <!-- 2. Pitch -->
     <section class="slide">
-      <div class="chrome"><span>02 / TECH</span><span>BETTER-T-STACK</span></div>
+      <div class="chrome"><span>02 / WHY</span><span>CHAT → SERVER</span></div>
       <div class="slide-content">
-        <p class="eyebrow anim">Under the hood</p>
-        <h2 class="anim d2">How it's built</h2>
-        <p class="lede anim d3">npm monorepo with Turborepo. Next.js app talks to Postgres, OpenAI, and local Ollama for embeddings.</p>
+        <p class="eyebrow anim">The point</p>
+        <h2 class="anim d2">Discord without leaving RANDO</h2>
+        <p class="lede anim d3">Ask the chatbot to list servers, post in a channel, drop an image, or DM you — it uses your linked Discord identity and an official bot in a server you manage.</p>
         <div class="grid-2 anim d4" style="margin-top: 4px;">
           <div class="card">
-            <h3>App layer</h3>
+            <h3>You authorize</h3>
             <ul>
-              <li>Next.js 16 App Router (port 3001)</li>
-              <li>React 19 + Tailwind 4</li>
-              <li>tRPC for chat CRUD</li>
-              <li>REST for AI stream, docs, escape, auth</li>
+              <li>Discord OAuth (identify + guilds)</li>
+              <li>Pick a manageable server</li>
+              <li>Install HennenBot with tight permissions</li>
+              <li>Save default channel + capabilities</li>
             </ul>
           </div>
           <div class="card">
-            <h3>Data &amp; AI</h3>
+            <h3>Chat executes</h3>
             <ul>
-              <li>Postgres 16 + pgvector (Docker)</li>
-              <li>Drizzle ORM · Better Auth</li>
-              <li>OpenAI for chat streaming</li>
-              <li>Ollama <code>nomic-embed-text</code> for RAG</li>
+              <li>Natural language → discord_* tools</li>
+              <li>Sensitive actions need Confirm</li>
+              <li>Confirm card lives in the chat reply</li>
+              <li>Audit log kept server-side</li>
             </ul>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 3. Features -->
+    <!-- 3. Flow -->
     <section class="slide">
-      <div class="chrome"><span>03 / FEATURES</span><span>CHAT · DOCS · DRIVE</span></div>
+      <div class="chrome"><span>03 / FLOW</span><span>CONNECT → SEND</span></div>
       <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
-        <p class="eyebrow anim">Product surface</p>
-        <h2 class="anim d2" style="margin-bottom: 8px;">What ships today</h2>
-        <div class="grid-2 anim d3">
-          <div class="card">
-            <h3>AI Chat</h3>
-            <ul>
-              <li>Streaming replies via AI SDK + OpenAI</li>
-              <li>Persistent chats &amp; messages in Postgres</li>
-              <li>Tool calling: document search + skills</li>
-              <li>Routes: <code>/ai</code>, <code>/ai/[chatId]</code></li>
-            </ul>
+        <p class="eyebrow anim">User path</p>
+        <h2 class="anim d2" style="margin-bottom: 8px;">How you use it</h2>
+        <div class="use-grid anim d3">
+          <div class="use-step">
+            <span class="num">1</span>
+            <div>
+              <h3>Connect Discord</h3>
+              <p>Settings → Connect. OAuth stores encrypted tokens. Never exposes the bot token to the browser.</p>
+            </div>
           </div>
-          <div class="card">
-            <h3>Documents / RAG</h3>
-            <ul>
-              <li>Upload PDF, DOCX, text, code</li>
-              <li>Chunk → embed → pgvector HNSW</li>
-              <li>Ollama <code>nomic-embed-text</code> (768-d)</li>
-              <li>Grounded answers in chat</li>
-            </ul>
+          <div class="use-step">
+            <span class="num">2</span>
+            <div>
+              <h3>Install &amp; save</h3>
+              <p>Add the bot to a server you manage, then Save server &amp; pick a default text channel.</p>
+            </div>
           </div>
-          <div class="card">
-            <h3>Auth &amp; embed</h3>
-            <ul>
-              <li>Better Auth email / password</li>
-              <li>Session-gated chats &amp; docs</li>
-              <li>Embeddable widget → <code>/embed</code></li>
-            </ul>
+          <div class="use-step">
+            <span class="num">3</span>
+            <div>
+              <h3>Ask in /ai</h3>
+              <p>“Send this pic to #main-puss” — the model calls discord tools with real guild/channel IDs.</p>
+            </div>
           </div>
-          <div class="card">
-            <h3>Play modes</h3>
-            <ul>
-              <li>Escape room: THE LAST TERMINAL</li>
-              <li>Slash cmds: <code>/escape</code> <code>/exit</code> <code>/help</code></li>
-              <li>Endless Drive at <code>/drive</code></li>
-            </ul>
+          <div class="use-step">
+            <span class="num">4</span>
+            <div>
+              <h3>Confirm &amp; send</h3>
+              <p>Image batches and other sensitive ops show a Confirm card under the reply. One click posts.</p>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 4. Screenshots -->
+    <!-- 4. Live proof -->
     <section class="slide">
-      <div class="chrome"><span>04 / UI</span><span>LIVE CAPTURES</span></div>
+      <div class="chrome"><span>04 / PROOF</span><span>LIVE CAPTURES</span></div>
       <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
-        <p class="eyebrow anim">Product look</p>
-        <h2 class="anim d2" style="margin-bottom: 8px;">From the live site</h2>
+        <p class="eyebrow anim">It actually posted</p>
+        <h2 class="anim d2" style="margin-bottom: 8px;">Real Discord receipts</h2>
         <div class="shots anim d3">
-          <figure class="shot">
-            <img src="assets/rando-home.png" alt="RANDO landing page with ENDLESS CHATTER hero" />
-            <figcaption><span>/</span> Landing — ENDLESS CHATTER</figcaption>
+          <figure class="shot wide">
+            <img src="assets/discord-message.png" alt="HennenBot message with image attachment in Discord channel" />
+            <figcaption><span>Sent</span> — Bot message + image in channel</figcaption>
           </figure>
           <figure class="shot">
-            <img src="assets/rando-drive.png" alt="Endless Drive low-poly world in browser" />
-            <figcaption><span>/drive</span> — Endless Drive in-game</figcaption>
+            <img src="assets/discord-bot-profile.png" alt="HennenBot Discord application profile with APP badge" />
+            <figcaption><span>App</span> — HennenBot#3314 installed</figcaption>
           </figure>
         </div>
       </div>
@@ -738,156 +612,120 @@
 
     <!-- 5. Architecture -->
     <section class="slide">
-      <div class="chrome"><span>05 / ARCHITECTURE</span><span>MONOREPO</span></div>
+      <div class="chrome"><span>05 / ARCHITECTURE</span><span>OFFICIAL BOT ONLY</span></div>
       <div class="slide-content" style="justify-content: center; gap: 10px;">
-        <p class="eyebrow anim">System shape · one request, top to bottom</p>
-        <h2 class="anim d2" style="margin-bottom: 2px;">Better-T-Stack monorepo</h2>
+        <p class="eyebrow anim">System shape</p>
+        <h2 class="anim d2" style="margin-bottom: 2px;">From chat tool to Discord API</h2>
         <div class="diagram anim d3">
           <div class="layer">
-            <div class="layer-tag">Client</div>
+            <div class="layer-tag">You</div>
             <div class="layer-boxes">
-              <div class="dbox"><strong>Browser UI</strong><span>Chat, docs, dashboard</span></div>
-              <div class="dbox"><strong>/drive iframe</strong><span>Three.js WebGL game</span></div>
-              <div class="dbox"><strong>/embed widget</strong><span>Drop-in on any site</span></div>
+              <div class="dbox"><strong>/ai chat</strong><span>Natural language + attachments</span></div>
+              <div class="dbox"><strong>Confirm card</strong><span>In-message approval UI</span></div>
+              <div class="dbox"><strong>/settings</strong><span>OAuth · guild · channel</span></div>
             </div>
           </div>
-          <div class="connector">HTTPS request</div>
+          <div class="connector">AI SDK tools · REST</div>
           <div class="layer">
-            <div class="layer-tag">App · apps/web</div>
+            <div class="layer-tag">App</div>
             <div class="layer-boxes">
-              <div class="dbox hl"><strong>Next.js 16 App Router</strong><span>React 19 server + client components, port 3001</span></div>
+              <div class="dbox hl"><strong>discord_* tools</strong><span>list · send · images · channels</span></div>
+              <div class="dbox"><strong>Integration service</strong><span>Encrypt tokens · confirmations · audit</span></div>
             </div>
           </div>
-          <div class="connector">tRPC calls · REST fetch</div>
+          <div class="connector">Bot token (server only)</div>
           <div class="layer">
-            <div class="layer-tag">API</div>
+            <div class="layer-tag">Discord</div>
             <div class="layer-boxes">
-              <div class="dbox"><strong>tRPC router</strong><span>Chat &amp; message CRUD</span></div>
-              <div class="dbox"><strong>REST endpoints</strong><span>/api/ai · docs · escape · auth</span></div>
-            </div>
-          </div>
-          <div class="connector">Drizzle ORM · provider SDKs</div>
-          <div class="layer">
-            <div class="layer-tag">Data &amp; AI</div>
-            <div class="layer-boxes">
-              <div class="dbox hl"><strong>Postgres 16 + pgvector</strong><span>Drizzle schemas · :5433 · HNSW search</span></div>
-              <div class="dbox"><strong>OpenAI</strong><span>Streaming chat completions</span></div>
-              <div class="dbox"><strong>Ollama</strong><span>nomic-embed-text · RAG</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="pkg-rail anim d4">
-          <span class="rail-label">Shared packages</span>
-          <code>@chatbot/api</code>
-          <code>@chatbot/auth</code>
-          <code>@chatbot/db</code>
-          <code>@chatbot/ui</code>
-          <code>@chatbot/env</code>
-        </div>
-      </div>
-    </section>
-
-    <!-- 6. What RANDO does -->
-    <section class="slide">
-      <div class="chrome"><span>06 / WHAT IT DOES</span><span>USER FLOW</span></div>
-      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
-        <p class="eyebrow anim">The actual point</p>
-        <h2 class="anim d2" style="margin-bottom: 8px;">What RANDO does for you</h2>
-        <p class="lede anim d3">Drop in your docs, ask questions, get answers grounded in your own files — then mess around with the games when your brain is fried.</p>
-        <div class="use-grid anim d4" style="margin-top: 4px;">
-          <div class="use-step">
-            <span class="num">1</span>
-            <div>
-              <h3>Sign in</h3>
-              <p>Email + password via Better Auth. Your chats and uploads stay private to your session.</p>
-            </div>
-          </div>
-          <div class="use-step">
-            <span class="num">2</span>
-            <div>
-              <h3>Upload knowledge</h3>
-              <p>Drop PDFs, DOCX, text, or code. RANDO chunks and embeds them into pgvector so it can cite them later.</p>
-            </div>
-          </div>
-          <div class="use-step">
-            <span class="num">3</span>
-            <div>
-              <h3>Chat with your files</h3>
-              <p>Ask anything. Streaming answers pull the most relevant chunks and stay grounded in what you gave it — no hallucinated sources.</p>
-            </div>
-          </div>
-          <div class="use-step">
-            <span class="num">4</span>
-            <div>
-              <h3>Play &amp; embed</h3>
-              <p>Run the in-chat escape room, hop into Endless Drive, or drop the widget into any site via <code>/embed</code>.</p>
+              <div class="dbox hl"><strong>Discord REST</strong><span>@discordjs/rest · API v10</span></div>
+              <div class="dbox"><strong>HennenBot</strong><span>Official app · scoped perms</span></div>
+              <div class="dbox"><strong>Your guild</strong><span>Channels you authorized</span></div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 6. Play modes deep dive -->
+    <!-- 6. Capabilities -->
     <section class="slide">
-      <div class="chrome"><span>07 / PLAY</span><span>EMBRACE THE MADNESS</span></div>
+      <div class="chrome"><span>06 / TOOLS</span><span>WHAT CHAT CAN DO</span></div>
       <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
-        <p class="eyebrow anim">Extra surfaces</p>
-        <h2 class="anim d2">Games inside the protocol</h2>
+        <p class="eyebrow anim">Controlled surface</p>
+        <h2 class="anim d2" style="margin-bottom: 8px;">Discord actions from chat</h2>
+        <div class="grid-3 anim d3">
+          <div class="card">
+            <h3>Read</h3>
+            <ul>
+              <li><code>discord_list_guilds</code></li>
+              <li><code>discord_list_channels</code></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Write</h3>
+            <ul>
+              <li><code>discord_send_message</code></li>
+              <li><code>discord_send_images</code></li>
+              <li><code>discord_send_dm</code> (self only)</li>
+              <li><code>discord_create_thread</code></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Manage</h3>
+            <ul>
+              <li>Create / update channel</li>
+              <li>Delete (off by default)</li>
+              <li>Always confirm sensitive ops</li>
+            </ul>
+          </div>
+        </div>
+        <p class="lede anim d4">No self-bots. No mass DMs. No Administrator. Mentions like @everyone stay blocked unless you explicitly allow them.</p>
+      </div>
+    </section>
+
+    <!-- 7. Say this -->
+    <section class="slide">
+      <div class="chrome"><span>07 / PROMPTS</span><span>JUST TYPE IT</span></div>
+      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
+        <p class="eyebrow anim">In /ai</p>
+        <h2 class="anim d2" style="margin-bottom: 8px;">Stuff you can actually say</h2>
         <div class="grid-2 anim d3">
           <div class="card">
-            <h3>THE LAST TERMINAL</h3>
-            <p>In-chat escape room narrated by A.R.I.A. Deterministic engine, persisted runs, slash commands, and AI narration over a sealed facility puzzle.</p>
+            <h3>Messages</h3>
+            <ul>
+              <li>“list my discord servers”</li>
+              <li>“send hello to #main-puss in kool kids klub”</li>
+              <li>“post this pic in main puss saying …” + attach image</li>
+              <li>“DM me on discord: we’re live”</li>
+            </ul>
           </div>
           <div class="card">
-            <h3>ENDLESS DRIVE</h3>
-            <p>Full-bleed iframe racer at <code>/drive</code> — procedural low-poly world, nitro, power-slide drift, night headlights, seed worlds (DRIVE-2049).</p>
+            <h3>Server moves</h3>
+            <ul>
+              <li>“what channels does the bot see?”</li>
+              <li>“make a thread under #general called rando”</li>
+              <li>“create a text channel named brainrot”</li>
+              <li>Confirm card pops under the reply → hit send</li>
+            </ul>
           </div>
         </div>
-        <p class="lede anim d4" style="margin-top: 4px;">Built as a standalone Three.js (r185) WebGL page in <code>public/games/</code>, embedded via iframe on <code>/drive</code>. Chunked terrain from a string seed hash, custom sky shader, day/night cycle, Web Audio engine loops — no React inside the game loop.</p>
+        <p class="lede anim d4" style="margin-top: 4px;">Attach the image in chat, ask for the channel, confirm once — HennenBot drops it. No portal tab yoga.</p>
       </div>
     </section>
 
-    <!-- 8. Lore / culture -->
-    <section class="slide">
-      <div class="chrome"><span>08 / LORE</span><span>EMBRACE THE MADNESS</span></div>
-      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
-        <p class="eyebrow anim">Certified guest speakers</p>
-        <h2 class="anim d2" style="margin-bottom: 8px;">The RANDO council</h2>
-        <div class="gallery anim d3">
-          <figure class="frame">
-            <img src="assets/meme-csclub.png" alt="Computer Science Club guest speaker gigachad" />
-            <figcaption><span>Ch.01</span> The CodeMaxer</figcaption>
-          </figure>
-          <figure class="frame">
-            <img src="assets/meme-myman.png" alt="My man reaction" />
-            <figcaption><span>Ch.02</span> My man</figcaption>
-          </figure>
-          <figure class="frame">
-            <img src="assets/meme-denji.png" alt="Anime reaction face" />
-            <figcaption><span>Ch.03</span> Framemoged</figcaption>
-          </figure>
-          <figure class="frame">
-            <img src="assets/meme-charlie.png" alt="Long-haired streamer reaction" />
-            <figcaption><span>Ch.04</span> The oracle</figcaption>
-          </figure>
-        </div>
-        <p class="lede anim d4" style="margin-top: 4px;">RANDO ships serious tech with an unserious face. ENDLESS CHATTER, FRAME: ∞, and a council of guest speakers who peer-reviewed absolutely nothing.</p>
-      </div>
-    </section>
-
-    <!-- 9. Close -->
+    <!-- 8. Close -->
     <section class="slide closing">
-      <div class="chrome"><span>09 / LIVE</span><span>FRAME: ∞</span></div>
+      <div class="chrome"><span>08 / LIVE</span><span>FRAME: ∞</span></div>
       <div class="slide-content">
         <p class="eyebrow anim">Status</p>
-        <h2 class="anim d2">Live on Vercel.</h2>
+        <h2 class="anim d2">Discord link is live.</h2>
         <p class="lede anim d3">
-          <a class="link" href="https://chatbot-ecru-two-16.vercel.app" target="_blank" rel="noopener">chatbot-ecru-two-16.vercel.app</a>
+          Connect in Settings, then drive your server from
+          <a class="link" href="https://chatbot-ecru-two-16.vercel.app/ai" target="_blank" rel="noopener">/ai</a>.
         </p>
         <div class="cta-row anim d4">
-          <span class="pill">Repo: gabo2212/rando-chatbot</span>
-          <span class="pill">Local: npm run dev :3001</span>
-          <a class="pill" href="discord-presentation.html" style="text-decoration:none">Discord deck →</a>
+          <span class="pill">Deck: /presentation/discord.html</span>
+          <span class="pill">Bot: HennenBot APP</span>
+          <span class="pill">Sibling: /presentation</span>
         </div>
       </div>
     </section>
@@ -895,7 +733,7 @@
 
   <div class="nav-controls">
     <button class="nav-btn" type="button" onclick="prevSlide()" aria-label="Previous">←</button>
-    <span class="slide-counter"><span id="current">1</span> / <span id="total">7</span></span>
+    <span class="slide-counter"><span id="current">1</span> / <span id="total">8</span></span>
     <button class="nav-btn" type="button" onclick="nextSlide()" aria-label="Next">→</button>
   </div>
   <div class="hint">← → / space</div>

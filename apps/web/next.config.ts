@@ -5,6 +5,23 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
   reactCompiler: true,
   transpilePackages: ["shiki"],
+  // Keep Discord Gateway/native optional deps out of the Turbopack graph.
+  serverExternalPackages: [
+    "discord.js",
+    "@discordjs/ws",
+    "@discordjs/rest",
+    "zlib-sync",
+    "bufferutil",
+    "utf-8-validate",
+  ],
+  async rewrites() {
+    return [
+      { source: "/presentation", destination: "/presentation/index.html" },
+      { source: "/presentation/", destination: "/presentation/index.html" },
+      { source: "/presentation/discord", destination: "/presentation/discord.html" },
+      { source: "/presentation/discord/", destination: "/presentation/discord.html" },
+    ];
+  },
   async headers() {
     return [
       {

@@ -1,0 +1,22 @@
+{
+  "name": "@chatbot/discord-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "register-commands": "tsx src/register-commands.ts",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "discord.js": "^14.25.1",
+    "dotenv": "^17.4.2",
+    "tsx": "^4.20.5",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^6"
+  }
+}

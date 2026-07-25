@@ -21,6 +21,7 @@
     "@chatbot/db": "*",
     "@chatbot/env": "*",
     "@chatbot/ui": "*",
+    "@discordjs/rest": "^2.6.3",
     "@opennextjs/cloudflare": "^1.20.1",
     "@swc/helpers": "^0.5.23",
     "@tanstack/react-form": "^1.33.0",
@@ -31,6 +32,7 @@
     "ai": "^7.0.13",
     "babel-plugin-react-compiler": "^1.0.0",
     "better-auth": "1.6.23",
+    "discord-api-types": "^0.38.51",
     "dotenv": "^17.4.2",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.23.0",
@@ -41,7 +43,9 @@
     "react-dom": "^19.2.7",
     "sonner": "^2.0.7",
     "streamdown": "^2.5.0",
+    "tweetnacl": "^1.0.3",
     "unpdf": "^1.6.2",
+    "zlib-sync": "^0.1.10",
     "zod": "^4.4.3"
   },
   "devDependencies": {

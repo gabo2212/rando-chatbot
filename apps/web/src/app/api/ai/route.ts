@@ -104,11 +104,20 @@ export async function POST(req: Request) {
         "getItemById",
         "submitAction",
         "searchDocuments",
+        "discord_list_guilds",
+        "discord_list_channels",
+        "discord_send_message",
+        "discord_send_images",
+        "discord_send_dm",
+        "discord_create_channel",
+        "discord_update_channel",
+        "discord_delete_channel",
+        "discord_create_thread",
       ],
-      stopWhen: stepCountIs(5),
+      stopWhen: stepCountIs(8),
       maxOutputTokens: 4096,
       abortSignal: AbortSignal.timeout(55_000),
-      onFinish: async ({ text, reasoningText }) => {
+      onFinish: async ({ text, reasoningText, steps }) => {
         if (!chatId || !auth.user) return;
         try {
           const database = db();
@@ -119,6 +128,30 @@ export async function POST(req: Request) {
           if (text) {
             parts.push({ type: "text", text });
           }
+          const seenConfirm = new Set<string>();
+          for (const step of steps ?? []) {
+            for (const result of step.toolResults ?? []) {
+              const output = (result as { output?: unknown }).output;
+              if (!output || typeof output !== "object") continue;
+              const rec = output as Record<string, unknown>;
+              if (rec.status !== "confirmation_required") continue;
+              if (typeof rec.confirmationId !== "string" || seenConfirm.has(rec.confirmationId)) {
+                continue;
+              }
+              seenConfirm.add(rec.confirmationId);
+              parts.push({
+                type: "data-discord-confirmation",
+                id: rec.confirmationId,
+                data: {
+                  confirmationId: rec.confirmationId,
+                  preview: rec.preview ?? null,
+                  message: typeof rec.message === "string" ? rec.message : null,
+                  status: "confirmation_required",
+                },
+              });
+            }
+          }
+          if (parts.length === 0) return;
           await database.insert(message).values({
             id: crypto.randomUUID(),
             chatId,

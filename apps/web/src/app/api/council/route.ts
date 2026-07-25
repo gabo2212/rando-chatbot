@@ -46,9 +46,9 @@ Stay in character and yap pure brainrot.`;
 const SYSTEM_PROMPT = process.env.COUNCIL_SYSTEM_PROMPT || DEFAULT_SYSTEM_PROMPT;
 
 // Tuning knobs — batching + throttling keep spend bounded.
-const BATCH = 30; // lines requested per upstream call
-const POOL_MAX = 90; // never hoard more than this
-const POOL_LOW = 12; // refill when we dip below this
+const BATCH = 18; // yaps requested per upstream call (longer lines → fewer per call)
+const POOL_MAX = 60; // never hoard more than this
+const POOL_LOW = 8; // refill when we dip below this
 const REFILL_COOLDOWN_MS = 4000; // hard floor between upstream calls
 
 type PoolState = {
@@ -68,7 +68,7 @@ function cleanLine(raw: string): string | null {
   // Strip list markers / numbering / surrounding quotes.
   s = s.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, "");
   s = s.replace(/^["'“”]+|["'“”]+$/g, "").trim();
-  if (s.length < 3 || s.length > 200) return null;
+  if (s.length < 8 || s.length > 320) return null;
   return s;
 }
 
@@ -86,10 +86,10 @@ async function callGrok(): Promise<string[]> {
         { role: "system", content: SYSTEM_PROMPT },
         {
           role: "user",
-          content: `Spit ${BATCH} different brainrot one-liners. Each is a single short line of pure Gen Z brainrot nonsense, max 16 words, all-lowercase energy, trailing off is fine. Output ONLY the lines, one per line — no numbers, no bullets, no quotes.`,
+          content: `Spit ${BATCH} different brainrot yaps. Each yap is ONE line but a longer rambling run-on — 25 to 45 words, several dumb clauses strung together with "..." that keep switching topics and trailing off. Pure Gen Z brainrot, all-lowercase energy, reference the cursed pics. Output ONLY the yaps, one per line — no numbers, no bullets, no quotes.`,
         },
       ],
-      max_tokens: 480,
+      max_tokens: 1200,
       temperature: 1.15,
       ...(isMini ? { reasoning_effort: "low" } : {}),
     }),

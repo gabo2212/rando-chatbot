@@ -141,14 +141,15 @@
       top: 0;
       left: 0;
       z-index: 6;
-      max-width: 260px;
-      padding: 10px 13px 11px;
-      border-radius: 14px 14px 14px 3px;
-      background: rgba(10, 14, 20, 0.82);
-      border: 1px solid rgba(232, 255, 120, 0.35);
-      box-shadow: 0 10px 34px rgba(0, 0, 0, 0.45);
-      backdrop-filter: blur(9px);
-      color: #f2f5e6;
+      width: max-content;
+      max-width: 340px;
+      padding: 13px 16px 14px;
+      border-radius: 16px 16px 16px 4px;
+      background: rgba(6, 9, 14, 0.94);
+      border: 2px solid rgba(232, 255, 120, 0.7);
+      box-shadow: 0 14px 44px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 0, 0, 0.5), 0 0 22px rgba(232, 255, 120, 0.25);
+      backdrop-filter: blur(4px);
+      color: #ffffff;
       font-family: "Geist Mono", ui-monospace, monospace;
       pointer-events: none;
       opacity: 0;
@@ -158,18 +159,20 @@
     #npc-bubble.show { opacity: 1; }
     #npc-bubble .npc-name {
       display: block;
-      font-size: 9px;
+      font-size: 11px;
       font-weight: 800;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: #e8ff78;
-      margin-bottom: 4px;
+      color: #eaff7a;
+      margin-bottom: 5px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
     }
     #npc-bubble .npc-line {
       display: block;
-      font-size: 13px;
-      line-height: 1.35;
-      font-weight: 500;
+      font-size: 15px;
+      line-height: 1.4;
+      font-weight: 600;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
     }
 
     .overlay {
@@ -869,7 +872,7 @@
       const sx = (_councilProj.x * 0.5 + 0.5) * innerWidth;
       const sy = (-_councilProj.y * 0.5 + 0.5) * innerHeight;
       npcBubble.style.transform = `translate(${Math.round(sx)}px, ${Math.round(sy)}px) translate(-10px, -100%)`;
-      npcBubble.style.opacity = String(0.35 + strength * 0.65);
+      npcBubble.style.opacity = String(0.88 + strength * 0.12);
       if (npcBubbleName.textContent !== COUNCIL[board.picIndex].name) {
         npcBubbleName.textContent = COUNCIL[board.picIndex].name;
       }

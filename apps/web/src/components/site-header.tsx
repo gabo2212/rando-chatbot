@@ -10,6 +10,7 @@ const navLinks = [
   { href: "/ai", label: "CHAT" },
   { href: "/documents", label: "DOCS" },
   { href: "/drive", label: "DRIVE" },
+  { href: "/settings", label: "SETTINGS" },
 ] as const;
 
 export default function SiteHeader() {
@@ -31,7 +32,7 @@ export default function SiteHeader() {
             {navLinks.map(({ href, label }) => (
               <Link
                 key={href}
-                href={href}
+                href={href as "/ai"}
                 className={cn(
                   "font-mono text-[10px] tracking-wider text-white/50 transition-colors hover:text-white",
                   pathname === href || pathname.startsWith(`${href}/`)

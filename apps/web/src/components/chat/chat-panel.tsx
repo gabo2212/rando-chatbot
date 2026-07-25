@@ -45,6 +45,10 @@ import {
 import { cn } from "@chatbot/ui/lib/utils";
 
 import { EscapeGamePanel } from "@/components/chat/escape-game-panel";
+import {
+  DiscordConfirmCard,
+  extractDiscordConfirmations,
+} from "@/components/chat/discord-confirm-card";
 import { authClient } from "@/lib/auth-client";
 import type { EscapeAction, PublicEscapeState } from "@/lib/escape-room/engine";
 import { parseSlashCommand, getSlashHelpText } from "@/lib/escape-room/slash";
@@ -134,6 +138,17 @@ function MessageParts({
         }
         return null;
       })}
+      {!isStreaming &&
+        extractDiscordConfirmations((message.parts ?? []) as Array<{ type: string } & Record<string, unknown>>).map(
+          (confirm) => (
+            <DiscordConfirmCard
+              key={confirm.confirmationId}
+              confirmationId={confirm.confirmationId}
+              preview={confirm.preview}
+              message={confirm.message}
+            />
+          ),
+        )}
     </MessageContent>
   );
 }
@@ -157,6 +172,7 @@ async function ingestFile(file: File, embedToken?: string): Promise<IngestRespon
 function buildMessageWithAttachments(
   userText: string,
   ingested: Array<IngestResponse & { localName: string }>,
+  discordAssets: Array<{ assetId: string; fileName: string }> = [],
 ) {
   const blocks = ingested.map((item) => {
     const name = item.fileName ?? item.localName;
@@ -174,8 +190,38 @@ function buildMessageWithAttachments(
     ].join("\n");
   });
 
+  const imageBlocks = discordAssets.map(
+    (asset) =>
+      [
+        `--- DISCORD IMAGE ASSET: ${asset.fileName} ---`,
+        `assetId: ${asset.assetId}`,
+        "Use this exact assetId value in discord_send_images.imageAssetIds (do not use the filename).",
+        `--- END DISCORD IMAGE ASSET: ${asset.fileName} ---`,
+      ].join("\n"),
+  );
+
   const prompt = userText.trim() || "Please review the attached file(s).";
-  return `${prompt}\n\n${blocks.join("\n\n")}`;
+  return `${prompt}\n\n${[...blocks, ...imageBlocks].join("\n\n")}`;
+}
+
+async function stageDiscordImageFile(file: File): Promise<{ assetId: string; fileName: string }> {
+  const body = new FormData();
+  body.append("file", file);
+  const res = await fetch("/api/integrations/discord/stage-image", {
+    method: "POST",
+    body,
+    credentials: "include",
+  });
+  const data = (await res.json()) as { assetId?: string; fileName?: string; error?: string };
+  if (!res.ok || !data.assetId) {
+    throw new Error(data.error ?? `Could not stage image (${res.status})`);
+  }
+  return { assetId: data.assetId, fileName: data.fileName ?? file.name };
+}
+
+function isImageFile(file: File) {
+  if (file.type.startsWith("image/")) return true;
+  return /\.(png|jpe?g|gif|webp)$/i.test(file.name);
 }
 
 function titleFromPrompt(text: string) {
@@ -472,7 +518,16 @@ export function ChatPanel({ chatId, initialMessages, embedToken }: ChatPanelProp
     setUploading(true);
     try {
       const ingested: Array<IngestResponse & { localName: string }> = [];
+      const discordAssets: Array<{ assetId: string; fileName: string }> = [];
       for (const item of pending) {
+        if (isImageFile(item.file)) {
+          try {
+            discordAssets.push(await stageDiscordImageFile(item.file));
+          } catch (error) {
+            const message = error instanceof Error ? error.message : "Image stage failed";
+            toast.error(`${item.file.name}: ${message}`);
+          }
+        }
         try {
           const result = await ingestFile(item.file, embedToken);
           ingested.push({ ...result, localName: item.file.name });
@@ -481,18 +536,23 @@ export function ChatPanel({ chatId, initialMessages, embedToken }: ChatPanelProp
             toast.success(`${item.file.name} → ${result.chunkCount ?? 0} chunks`);
           }
         } catch (error) {
-          const message = error instanceof Error ? error.message : "Upload failed";
-          toast.error(`${item.file.name}: ${message}`);
+          // Images are often non-text; staging above is enough for Discord sends.
+          if (!isImageFile(item.file)) {
+            const message = error instanceof Error ? error.message : "Upload failed";
+            toast.error(`${item.file.name}: ${message}`);
+          }
         }
       }
 
       const messageText =
-        ingested.length > 0 ? buildMessageWithAttachments(text, ingested) : text;
+        ingested.length > 0 || discordAssets.length > 0
+          ? buildMessageWithAttachments(text, ingested, discordAssets)
+          : text;
 
       if (!messageText.trim()) return;
 
       try {
-        await ensureChat(text || ingested[0]?.fileName || "New Chat");
+        await ensureChat(text || ingested[0]?.fileName || discordAssets[0]?.fileName || "New Chat");
       } catch (error) {
         const message = error instanceof Error ? error.message : "Could not save chat";
         toast.error(message);

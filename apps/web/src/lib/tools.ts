@@ -2,6 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 
 import { createApiClient } from "./api-client";
+import { createDiscordTools } from "./integrations/discord/tools";
 import { searchDocuments as ragSearch } from "./rag";
 import { getSkillByName, skills } from "./skills-registry";
 
@@ -10,6 +11,7 @@ import { getSkillByName, skills } from "./skills-registry";
 export function createTools(token: string, options?: { userId?: string }) {
   const _api = createApiClient(token);
   const userId = options?.userId;
+  const discordTools = createDiscordTools(userId);
 
   return {
     getSkillDetails: tool({
@@ -70,5 +72,7 @@ export function createTools(token: string, options?: { userId?: string }) {
         }
       },
     }),
+
+    ...discordTools,
   };
 }
