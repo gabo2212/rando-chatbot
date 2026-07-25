@@ -592,15 +592,16 @@
       min-height: 0;
       height: 100%;
       aspect-ratio: 3 / 4;
-      max-height: min(56vh, 500px);
       object-fit: cover;
       object-position: center top;
+      background: #111;
     }
 
+    /* Match slide-5 .shot figcaption bars — thin footer, never a tall void */
     .frame figcaption {
-      padding: clamp(8px, 1.2vh, 12px) clamp(10px, 1.2vw, 14px);
-      font-size: clamp(10px, 1.05vw, 13px);
-      letter-spacing: 0.1em;
+      padding: clamp(10px, 1.4vh, 14px) clamp(12px, 1.4vw, 16px);
+      font-size: clamp(11px, 1.15vw, 14px);
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--muted);
       border-top: 1px solid var(--line);
@@ -609,35 +610,42 @@
 
     .frame figcaption span { color: var(--accent); }
 
-    /* Lore board: center + grow frames to fill the stage */
+    /* Lore board: compact header like slide 5, photos fill remaining stage */
     .lore-slide .slide-content {
-      justify-content: center;
-      gap: clamp(10px, 1.8vh, 20px);
+      justify-content: flex-start;
+      gap: clamp(8px, 1.2vh, 14px);
+      padding-top: clamp(10px, 1.6vh, 18px);
     }
 
     .lore-slide h2 {
-      font-size: clamp(28px, 4.2vw, 52px);
+      font-size: clamp(26px, 3.8vw, 48px);
     }
 
     .lore-slide .lede {
-      max-width: 54rem;
-      font-size: clamp(14px, 1.5vw, 18px);
-      line-height: 1.45;
+      max-width: 52rem;
+      font-size: clamp(13px, 1.3vw, 16px);
+      line-height: 1.4;
     }
 
     .lore-slide .gallery {
-      gap: clamp(10px, 1.5vw, 18px);
+      gap: clamp(12px, 1.6vw, 22px);
+      margin-top: clamp(4px, 0.8vh, 10px);
     }
 
     .lore-slide .frame img {
-      aspect-ratio: 3 / 4;
-      max-height: min(54vh, 480px);
+      aspect-ratio: auto;
+      min-height: clamp(220px, 42vh, 560px);
+      max-height: none;
       height: auto;
+      flex: 1 1 auto;
+      object-fit: cover;
+      object-position: center top;
     }
 
     .lore-slide .frame figcaption {
-      padding: clamp(6px, 1vh, 10px) clamp(8px, 1vw, 12px);
-      font-size: clamp(10px, 1.05vw, 12px);
+      padding: clamp(10px, 1.4vh, 14px) clamp(12px, 1.4vw, 16px);
+      font-size: clamp(11px, 1.15vw, 14px);
+      letter-spacing: 0.12em;
     }
 
     .side-shots {
@@ -718,7 +726,7 @@
         gap: clamp(18px, 2vw, 32px);
       }
       .lore-slide .frame img {
-        max-height: min(56vh, 520px);
+        min-height: clamp(280px, 48vh, 620px);
       }
     }
   </style>
@@ -748,19 +756,19 @@
       <div class="slide-content">
         <p class="eyebrow anim">The point</p>
         <h2 class="anim d2">Discord without leaving RANDO</h2>
-        <p class="lede anim d3">Ask the chatbot to list servers, post, drop an image, or DM you — linked Discord identity + official bot in a server you manage. Authorize once; chat executes.</p>
+        <p class="lede anim d3">List servers, post, drop an image, or DM — authorize once, then chat executes.</p>
         <div class="gallery anim d4">
           <figure class="frame">
-            <img src="assets/lore-qanal.png" alt="Qanal selfie" />
-            <figcaption><span>01</span> Qanal</figcaption>
+            <img src="/presentation/assets/lore-qanal.png" alt="Qanal selfie" />
+            <figcaption><span>01</span> — Qanal</figcaption>
           </figure>
           <figure class="frame">
-            <img src="assets/lore-han.png" alt="Han at the stadium" />
-            <figcaption><span>02</span> Han</figcaption>
+            <img src="/presentation/assets/lore-han.png" alt="Han at the stadium" />
+            <figcaption><span>02</span> — Han</figcaption>
           </figure>
           <figure class="frame">
-            <img src="assets/lore-sosa.png" alt="Stylized red-eye portrait" />
-            <figcaption><span>03</span> Sosa</figcaption>
+            <img src="/presentation/assets/lore-sosa.png" alt="Stylized red-eye portrait" />
+            <figcaption><span>03</span> — Sosa</figcaption>
           </figure>
         </div>
       </div>
@@ -811,19 +819,19 @@
       <div class="slide-content">
         <p class="eyebrow anim">Exhibit A through C</p>
         <h2 class="anim d2">The board that greenlit this</h2>
-        <p class="lede anim d3">Product requirements written in Instagram stories. QA was a vibe check. Legal said “ship it” while coughing blood into a Boba Boyz pouch.</p>
+        <p class="lede anim d3">PRDs in IG stories. QA was a vibe check. Legal said “ship it.”</p>
         <div class="gallery anim d4">
           <figure class="frame">
-            <img src="assets/lore-snoop.png" alt="Snoop gore meme promoting Boba Boyz" />
-            <figcaption><span>01</span> Brand ambassador</figcaption>
+            <img src="/presentation/assets/lore-snoop.png" alt="Snoop gore meme promoting Boba Boyz" />
+            <figcaption><span>01</span> — Ambassador</figcaption>
           </figure>
           <figure class="frame">
-            <img src="assets/lore-boba.png" alt="Boba Boyz pouch held up to camera" />
-            <figcaption><span>02</span> Side effects TBD</figcaption>
+            <img src="/presentation/assets/lore-boba.png" alt="Boba Boyz pouch held up to camera" />
+            <figcaption><span>02</span> — Side effects</figcaption>
           </figure>
           <figure class="frame">
-            <img src="assets/lore-story.png" alt="Instagram story with misterhennen tag" style="object-position: center 20%;" />
-            <figcaption><span>03</span> User research</figcaption>
+            <img src="/presentation/assets/lore-story.png" alt="Instagram story with misterhennen tag" style="object-position: center 20%;" />
+            <figcaption><span>03</span> — Research</figcaption>
           </figure>
         </div>
       </div>
@@ -837,11 +845,11 @@
         <h2 class="anim d2">Real Discord receipts</h2>
         <div class="shots anim d3">
           <figure class="shot wide">
-            <img src="assets/discord-message.png" alt="HennenBot message with image attachment in Discord channel" />
+            <img src="/presentation/assets/discord-message.png" alt="HennenBot message with image attachment in Discord channel" />
             <figcaption><span>Sent</span> — Bot message + image in channel</figcaption>
           </figure>
           <figure class="shot">
-            <img src="assets/discord-bot-profile.png" alt="HennenBot Discord application profile with APP badge" />
+            <img src="/presentation/assets/discord-bot-profile.png" alt="HennenBot Discord application profile with APP badge" />
             <figcaption><span>App</span> — HennenBot#3314 installed</figcaption>
           </figure>
         </div>
@@ -971,7 +979,7 @@
             </div>
           </div>
           <figure class="shot anim d3">
-            <img src="assets/lore-council.png" alt="RANDO council projected live" style="aspect-ratio: 3 / 4; object-fit: cover;" />
+            <img src="/presentation/assets/lore-council.png" alt="RANDO council projected live" style="aspect-ratio: 3 / 4; object-fit: cover;" />
             <figcaption><span>Live</span> — RANDO council in the room</figcaption>
           </figure>
         </div>
@@ -981,7 +989,7 @@
 
   <div class="nav-controls">
     <button class="nav-btn" type="button" onclick="prevSlide()" aria-label="Previous">←</button>
-    <span class="slide-counter"><span id="current">1</span> / <span id="total">8</span></span>
+    <span class="slide-counter"><span id="current">1</span> / <span id="total">9</span></span>
     <button class="nav-btn" type="button" onclick="nextSlide()" aria-label="Next">→</button>
   </div>
   <div class="hint">← → / space</div>
