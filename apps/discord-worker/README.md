@@ -17,8 +17,10 @@ PORT=8787
 
 ## Discord Developer Portal
 
-1. **Bot → Privileged Gateway Intents → Message Content Intent** → enable (required to read `@bot …` text)
-2. Enable intents used by this worker: Guilds, Guild Messages, Message Content, Guild Voice States
+1. **Bot → Privileged Gateway Intents** — Message Content Intent is **optional** for `@mentions`
+   (Discord still sends content when the bot is mentioned). Enable it only if you also need to
+   read non-mention message bodies, then set `DISCORD_MESSAGE_CONTENT_INTENT=1` on the worker.
+2. Enable Gateway intents used by this worker: Guilds, Guild Messages, Guild Voice States
 3. Invite the bot with Send Messages + Read Message History (+ Use Application Commands)
 4. Set Interactions Endpoint URL on the web app:
    `https://<your-web-domain>/api/integrations/discord/interactions`

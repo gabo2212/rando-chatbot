@@ -38,11 +38,17 @@ if (!webAppUrl) {
 }
 
 const client = new Client({
+  // Do NOT request GatewayIntentBits.MessageContent unless it is enabled in the
+  // Discord Developer Portal. Mentions still include message content without it
+  // (Discord exception). Enable Message Content Intent only if you also need to
+  // read non-mention guild message bodies.
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildVoiceStates,
+    ...(process.env.DISCORD_MESSAGE_CONTENT_INTENT === "1"
+      ? [GatewayIntentBits.MessageContent]
+      : []),
   ],
   partials: [Partials.Channel],
 });

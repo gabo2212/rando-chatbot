@@ -7,7 +7,9 @@
 3. Copy **Client ID** → `DISCORD_CLIENT_ID`
 4. Copy **Client Secret** → `DISCORD_CLIENT_SECRET`
 5. **Bot** tab → Reset Token → `DISCORD_BOT_TOKEN` (never expose to the browser)
-6. **Bot → Privileged Gateway Intents** → enable **Message Content Intent** (required for `@bot` prompts)
+6. **Bot → Privileged Gateway Intents** — Message Content Intent is **optional for `@bot` mentions**
+   (Discord includes content when the bot is mentioned). Enable it only if the worker must read
+   non-mention message text, then set `DISCORD_MESSAGE_CONTENT_INTENT=1` on the worker.
 7. **General Information** → Public Key → `DISCORD_PUBLIC_KEY`
 8. **Interactions Endpoint URL** → `https://<production-domain>/api/integrations/discord/interactions`
 9. Set `DISCORD_REDIRECT_URI` to the matching callback URL
