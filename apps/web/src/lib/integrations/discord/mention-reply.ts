@@ -4,7 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { discordGuildConnection } from "@chatbot/db";
 
 import { db } from "@/lib/db";
-import { getChatModel } from "@/lib/openai-model";
+import { getXaiChatModel } from "@/lib/xai-model";
 
 export const DISCORD_CONTENT_LIMIT = 2000;
 export const DISCORD_MENTION_HELP =
@@ -120,9 +120,9 @@ export async function completeDiscordChat(
     };
   }
 
-  const model = getChatModel();
+  const model = getXaiChatModel();
   if (!model) {
-    return { ok: false, error: "OpenAI is not configured on the server.", status: 503 };
+    return { ok: false, error: "xAI is not configured on the server (set XAI_API_KEY).", status: 503 };
   }
 
   const linkedUserId = await resolveLinkedUserIdForGuild(input.guildId);
