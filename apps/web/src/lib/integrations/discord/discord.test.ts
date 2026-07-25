@@ -17,6 +17,12 @@ import {
   sendMessageSchema,
 } from "@/lib/integrations/discord/schemas";
 import { createOAuthState, createPkcePair } from "@/lib/integrations/discord/oauth";
+import {
+  checkMentionRateLimit,
+  resetMentionRateLimitForTests,
+  splitDiscordContent,
+  stripBotMention,
+} from "@/lib/integrations/discord/mention-reply";
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 describe("discord encryption", () => {
@@ -127,5 +133,32 @@ describe("confirmation integrity helpers", () => {
     const other = createHmac("sha256", secret).update(body + "x").digest("hex");
     expect(timingSafeEqual(Buffer.from(sig, "hex"), Buffer.from(sig, "hex"))).toBe(true);
     expect(sig).not.toBe(other);
+  });
+});
+
+describe("discord mention reply helpers", () => {
+  it("strips <@id> and <@!id> mentions", () => {
+    expect(stripBotMention("<@123> hello", "123")).toBe("hello");
+    expect(stripBotMention("<@!123>  what's up?", "123")).toBe("what's up?");
+    expect(stripBotMention("hey <@123> there <@123>", "123")).toBe("hey there");
+  });
+
+  it("splits long replies under 2000 chars", () => {
+    const long = `${"a".repeat(1900)}\n${"b".repeat(500)}`;
+    const chunks = splitDiscordContent(long, 2000);
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(chunks.every((c) => c.length <= 2000)).toBe(true);
+    expect(chunks.join("")).toContain("a");
+    expect(chunks.join("")).toContain("b");
+  });
+
+  it("rate-limits repeated keys", () => {
+    resetMentionRateLimitForTests();
+    expect(checkMentionRateLimit("g:u").ok).toBe(true);
+    expect(checkMentionRateLimit("g:u").ok).toBe(true);
+    expect(checkMentionRateLimit("g:u").ok).toBe(true);
+    const blocked = checkMentionRateLimit("g:u");
+    expect(blocked.ok).toBe(false);
+    if (!blocked.ok) expect(blocked.retryAfterMs).toBeGreaterThan(0);
   });
 });

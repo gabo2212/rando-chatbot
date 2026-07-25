@@ -1,15 +1,29 @@
+import { after } from "next/server";
 import { NextResponse } from "next/server";
 import nacl from "tweetnacl";
 
+import {
+  completeDiscordChat,
+  DISCORD_MENTION_HELP,
+  splitDiscordContent,
+} from "@/lib/integrations/discord/mention-reply";
 import { getDiscordConfig } from "@/lib/integrations/discord/schemas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
+type InteractionOption = { name: string; value?: string | number | boolean };
 type Interaction = {
   type: number;
-  data?: { name?: string; options?: Array<{ name: string; value?: string }> };
+  id?: string;
+  token?: string;
+  application_id?: string;
+  guild_id?: string;
+  channel_id?: string;
+  member?: { user?: { id?: string; username?: string; global_name?: string } };
+  user?: { id?: string; username?: string; global_name?: string };
+  data?: { name?: string; options?: InteractionOption[] };
 };
 
 function verifyDiscordSignature(rawBody: string, signature: string, timestamp: string, publicKey: string): boolean {
@@ -23,6 +37,31 @@ function verifyDiscordSignature(rawBody: string, signature: string, timestamp: s
     );
   } catch {
     return false;
+  }
+}
+
+async function postInteractionFollowup(
+  applicationId: string,
+  token: string,
+  content: string,
+  ephemeral = true,
+) {
+  const chunks = splitDiscordContent(content);
+  for (let i = 0; i < chunks.length; i++) {
+    const res = await fetch(`https://discord.com/api/v10/webhooks/${applicationId}/${token}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        content: chunks[i],
+        flags: ephemeral ? 64 : undefined,
+        allowed_mentions: { parse: [] },
+      }),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      console.error("discord interaction followup failed", res.status, text.slice(0, 200));
+      break;
+    }
   }
 }
 
@@ -60,7 +99,7 @@ export async function POST(request: Request) {
         type: 4,
         data: {
           content:
-            "**RANDO Discord bot**\n`/help` — this message\n`/status` — connection status\n`/link` — link your website account\n`/chat` — ask the chatbot (ephemeral)\n\nPrivacy: public channels never receive private website chats unless you explicitly ask in-app.",
+            "**RANDO Discord bot**\n`/help` — this message\n`/status` — connection status\n`/link` — link your website account\n`/chat` — ask RANDO AI (ephemeral)\n\nOr **@mention** the bot in a channel: `@bot what's up?`\n\nPrivacy: public channels never receive private website chats unless you explicitly ask in-app.",
           flags: 64,
         },
       });
@@ -81,7 +120,7 @@ export async function POST(request: Request) {
         type: 4,
         data: {
           content: cfg.ready
-            ? "Discord integration is configured on the website. Connect & authorize servers at Settings."
+            ? "Discord integration is configured on the website. Connect & authorize servers at Settings. @mention replies need the Gateway worker online."
             : "Discord integration is not fully configured yet.",
           flags: 64,
         },
@@ -89,23 +128,40 @@ export async function POST(request: Request) {
     }
 
     if (name === "chat") {
-      const prompt =
+      const promptRaw =
         interaction.data?.options?.find((o) => o.name === "prompt")?.value ??
         interaction.data?.options?.[0]?.value;
-      if (!prompt || typeof prompt !== "string") {
+      const prompt = typeof promptRaw === "string" ? promptRaw.trim() : "";
+
+      if (!prompt) {
         return NextResponse.json({
           type: 4,
-          data: { content: "Usage: `/chat prompt:<your question>`", flags: 64 },
+          data: { content: `Usage: \`/chat prompt:<your question>\`\n${DISCORD_MENTION_HELP}`, flags: 64 },
         });
       }
 
-      return NextResponse.json({
-        type: 4,
-        data: {
-          content: `For full chatbot tools (including Discord actions with confirmation), use the website chat at ${base}/ai.\n\nYour prompt: “${prompt.slice(0, 200)}${prompt.length > 200 ? "…" : ""}”`,
-          flags: 64,
-        },
-      });
+      const applicationId = interaction.application_id;
+      const token = interaction.token;
+      const discordUser = interaction.member?.user ?? interaction.user;
+
+      if (applicationId && token) {
+        after(async () => {
+          const result = await completeDiscordChat({
+            prompt,
+            guildId: interaction.guild_id,
+            channelId: interaction.channel_id,
+            discordUserId: discordUser?.id,
+            discordUsername: discordUser?.global_name ?? discordUser?.username,
+          });
+          const content = result.ok
+            ? result.text
+            : `Sorry — ${result.error}`;
+          await postInteractionFollowup(applicationId, token, content, true);
+        });
+      }
+
+      // Deferred ephemeral reply — AI follow-up is posted via webhook.
+      return NextResponse.json({ type: 5, data: { flags: 64 } });
     }
 
     return NextResponse.json({

@@ -16,7 +16,7 @@ const commands = [
   new SlashCommandBuilder().setName("link").setDescription("Get a secure account-linking URL"),
   new SlashCommandBuilder()
     .setName("chat")
-    .setDescription("Send a prompt hint to the website chatbot")
+    .setDescription("Ask RANDO AI (ephemeral reply)")
     .addStringOption((o) => o.setName("prompt").setDescription("What to ask").setRequired(true)),
 ].map((c) => c.toJSON());
 
