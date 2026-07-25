@@ -66,7 +66,7 @@
       inset: 0;
       display: flex;
       flex-direction: column;
-      padding: clamp(28px, 5vw, 64px);
+      padding: clamp(32px, 4.5vh, 56px) clamp(28px, 4.5vw, 72px);
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.4s ease;
@@ -93,12 +93,12 @@
 
     .chrome {
       position: absolute;
-      top: clamp(16px, 3vw, 28px);
+      top: clamp(14px, 2.2vh, 24px);
       left: clamp(20px, 4vw, 48px);
       right: clamp(20px, 4vw, 48px);
       display: flex;
       justify-content: space-between;
-      font-size: 11px;
+      font-size: clamp(10px, 0.95vw, 13px);
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--muted);
@@ -114,25 +114,31 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
+      align-items: stretch;
       width: 100%;
       max-width: 100%;
-      gap: clamp(12px, 2vh, 28px);
+      min-height: 0;
+      gap: clamp(14px, 2.4vh, 32px);
+      padding-top: clamp(18px, 3vh, 28px);
+      padding-bottom: clamp(8px, 1.5vh, 20px);
     }
 
     .eyebrow {
-      font-size: 12px;
+      font-size: clamp(12px, 1.15vw, 15px);
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--accent-dim);
+      flex-shrink: 0;
     }
 
     h1 {
       font-family: var(--font-display);
       font-weight: 800;
-      font-size: clamp(48px, 9vw, 112px);
+      font-size: clamp(52px, 10vw, 128px);
       line-height: 0.92;
       letter-spacing: -0.03em;
       color: var(--text);
+      flex-shrink: 0;
     }
 
     h1 .accent { color: var(--accent); }
@@ -140,29 +146,31 @@
     h2 {
       font-family: var(--font-display);
       font-weight: 700;
-      font-size: clamp(28px, 4.5vw, 52px);
+      font-size: clamp(30px, 5vw, 60px);
       letter-spacing: -0.02em;
       line-height: 1.05;
+      flex-shrink: 0;
     }
 
     .lede {
-      max-width: 42rem;
-      font-size: clamp(14px, 1.6vw, 18px);
+      max-width: min(48rem, 92%);
+      font-size: clamp(15px, 1.75vw, 22px);
       line-height: 1.55;
       color: var(--muted);
+      flex-shrink: 0;
     }
 
     .cta-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 8px;
+      gap: clamp(10px, 1.2vw, 16px);
+      margin-top: clamp(4px, 1vh, 12px);
     }
 
     .pill {
       border: 1px solid var(--line);
-      padding: 10px 16px;
-      font-size: 12px;
+      padding: clamp(10px, 1.4vh, 16px) clamp(14px, 1.6vw, 22px);
+      font-size: clamp(12px, 1.15vw, 15px);
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--accent);
@@ -172,44 +180,51 @@
     .grid-2 {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: clamp(12px, 2vw, 20px);
+      gap: clamp(14px, 2.2vw, 28px);
       width: 100%;
+      align-content: stretch;
     }
 
     .grid-3 {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: clamp(10px, 1.5vw, 16px);
+      gap: clamp(12px, 1.8vw, 22px);
       width: 100%;
+      align-content: stretch;
     }
 
     @media (max-width: 720px) {
       .grid-2, .grid-3 { grid-template-columns: 1fr; }
       .slide { padding: 56px 20px 72px; }
+      .slide-content { padding-top: 12px; gap: 14px; }
     }
 
     .card {
       border: 1px solid var(--line);
       background: rgba(16, 17, 20, 0.72);
-      padding: clamp(14px, 2vw, 22px);
+      padding: clamp(20px, 2.8vw, 36px);
       text-align: left;
       min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: clamp(4px, 0.6vh, 8px);
     }
 
     .card h3 {
       font-family: var(--font-display);
-      font-size: clamp(16px, 2vw, 22px);
-      margin-bottom: 8px;
+      font-size: clamp(18px, 2.2vw, 26px);
+      margin-bottom: clamp(8px, 1vh, 14px);
       color: var(--accent);
     }
 
     .card p, .card li {
-      font-size: clamp(12px, 1.25vw, 14px);
-      line-height: 1.5;
+      font-size: clamp(13px, 1.4vw, 17px);
+      line-height: 1.55;
       color: var(--muted);
     }
 
-    .card ul { list-style: none; display: grid; gap: 6px; }
+    .card ul { list-style: none; display: grid; gap: clamp(6px, 1vh, 10px); }
     .card li::before {
       content: "› ";
       color: var(--accent-dim);
@@ -233,17 +248,21 @@
       flex-direction: column;
       width: 100%;
       margin-top: 2px;
+      flex: 1 1 auto;
+      min-height: 0;
+      justify-content: center;
+      gap: clamp(2px, 0.6vh, 8px);
     }
 
     .layer {
       display: grid;
-      grid-template-columns: 132px 1fr;
-      gap: 16px;
+      grid-template-columns: clamp(110px, 12vw, 160px) 1fr;
+      gap: clamp(12px, 1.6vw, 20px);
       align-items: center;
     }
 
     .layer-tag {
-      font-size: 10px;
+      font-size: clamp(10px, 1vw, 13px);
       letter-spacing: 0.16em;
       text-transform: uppercase;
       color: var(--accent-dim);
@@ -258,7 +277,7 @@
 
     .layer-boxes {
       display: flex;
-      gap: 10px;
+      gap: clamp(10px, 1.2vw, 14px);
       flex-wrap: wrap;
     }
 
@@ -267,7 +286,7 @@
       min-width: 120px;
       border: 1px solid var(--line);
       background: rgba(16, 17, 20, 0.72);
-      padding: clamp(12px, 1.6vh, 20px) 16px;
+      padding: clamp(14px, 2.2vh, 26px) clamp(14px, 1.6vw, 20px);
     }
 
     .dbox.hl {
@@ -278,7 +297,7 @@
     .dbox strong {
       display: block;
       font-family: var(--font-display);
-      font-size: clamp(13px, 1.5vw, 17px);
+      font-size: clamp(14px, 1.7vw, 20px);
       color: var(--text);
       letter-spacing: -0.01em;
     }
@@ -287,27 +306,27 @@
 
     .dbox span {
       display: block;
-      margin-top: 3px;
-      font-size: 11px;
+      margin-top: 4px;
+      font-size: clamp(11px, 1.15vw, 14px);
       color: var(--muted);
       line-height: 1.4;
     }
 
     .connector {
-      margin-left: 148px;
+      margin-left: clamp(122px, 12vw + 12px, 180px);
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: clamp(8px, 1.4vh, 16px) 0;
+      padding: clamp(6px, 1.2vh, 14px) 0;
       color: var(--muted);
-      font-size: 10px;
+      font-size: clamp(10px, 1vw, 12px);
       letter-spacing: 0.14em;
       text-transform: uppercase;
     }
 
     .connector::before {
       content: "↓";
-      font-size: 15px;
+      font-size: clamp(14px, 1.5vw, 18px);
       line-height: 1;
       color: var(--accent);
     }
@@ -317,13 +336,14 @@
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
-      margin-top: 12px;
-      padding-top: 12px;
+      margin-top: clamp(4px, 1vh, 12px);
+      padding-top: clamp(10px, 1.4vh, 16px);
       border-top: 1px solid var(--line);
+      flex-shrink: 0;
     }
 
     .pkg-rail .rail-label {
-      font-size: 10px;
+      font-size: clamp(10px, 1vw, 12px);
       letter-spacing: 0.16em;
       text-transform: uppercase;
       color: var(--accent-dim);
@@ -333,8 +353,8 @@
     .pkg-rail code {
       border: 1px solid var(--line);
       background: rgba(232, 255, 120, 0.04);
-      padding: 5px 9px;
-      font-size: 11px;
+      padding: clamp(5px, 0.9vh, 8px) clamp(9px, 1vw, 12px);
+      font-size: clamp(11px, 1.15vw, 14px);
       color: var(--accent);
     }
 
@@ -410,15 +430,25 @@
 
     .title-slide .slide-content {
       align-items: flex-start;
-      justify-content: flex-end;
-      padding-bottom: 8px;
+      justify-content: center;
+      gap: clamp(16px, 2.8vh, 36px);
+      padding-bottom: clamp(24px, 6vh, 64px);
+    }
+
+    .title-slide h1 {
+      font-size: clamp(64px, 12vw, 148px);
+    }
+
+    .title-slide .lede {
+      font-size: clamp(16px, 2vw, 26px);
+      max-width: 36rem;
     }
 
     .big-meta {
       display: flex;
-      gap: 24px;
+      gap: clamp(20px, 3vw, 36px);
       flex-wrap: wrap;
-      font-size: 11px;
+      font-size: clamp(11px, 1.2vw, 15px);
       letter-spacing: 0.16em;
       text-transform: uppercase;
       color: var(--muted);
@@ -432,14 +462,29 @@
       word-break: break-all;
     }
 
-    .closing h2 { max-width: 16ch; }
+    .closing .slide-content {
+      justify-content: center;
+      gap: clamp(18px, 3vh, 40px);
+    }
+
+    .closing h2 {
+      max-width: 16ch;
+      font-size: clamp(36px, 6vw, 72px);
+    }
+
+    .closing .lede {
+      font-size: clamp(16px, 1.9vw, 24px);
+      max-width: 44rem;
+    }
 
     .shots {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: clamp(12px, 2vw, 20px);
+      gap: clamp(14px, 2.2vw, 28px);
       width: 100%;
-      align-items: start;
+      align-items: stretch;
+      flex: 1 1 auto;
+      min-height: 0;
     }
 
     @media (max-width: 720px) {
@@ -451,11 +496,17 @@
       background: #000;
       overflow: hidden;
       text-align: left;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
     }
 
     .shot img {
       display: block;
       width: 100%;
+      flex: 1 1 auto;
+      min-height: clamp(180px, 32vh, 420px);
       height: auto;
       aspect-ratio: 16 / 10;
       object-fit: cover;
@@ -463,12 +514,13 @@
     }
 
     .shot figcaption {
-      padding: 10px 12px;
-      font-size: 11px;
+      padding: clamp(10px, 1.4vh, 14px) clamp(12px, 1.4vw, 16px);
+      font-size: clamp(11px, 1.15vw, 14px);
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--muted);
       border-top: 1px solid var(--line);
+      flex-shrink: 0;
     }
 
     .shot figcaption span {
@@ -478,9 +530,11 @@
     .gallery {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: clamp(8px, 1.2vw, 14px);
+      gap: clamp(10px, 1.6vw, 18px);
       width: 100%;
       align-items: stretch;
+      flex: 1 1 auto;
+      min-height: 0;
     }
 
     @media (max-width: 720px) {
@@ -494,24 +548,30 @@
       text-align: left;
       display: flex;
       flex-direction: column;
+      height: 100%;
+      min-height: 0;
     }
 
     .frame img {
       display: block;
       width: 100%;
+      flex: 1 1 auto;
+      min-height: 0;
       height: 100%;
       aspect-ratio: 3 / 4;
+      max-height: min(58vh, 520px);
       object-fit: cover;
       object-position: top center;
     }
 
     .frame figcaption {
-      padding: 8px 10px;
-      font-size: 10px;
+      padding: clamp(8px, 1.2vh, 12px) clamp(10px, 1.2vw, 14px);
+      font-size: clamp(10px, 1.05vw, 13px);
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--muted);
       border-top: 1px solid var(--line);
+      flex-shrink: 0;
     }
 
     .frame figcaption span { color: var(--accent); }
@@ -519,43 +579,69 @@
     .use-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: clamp(10px, 1.6vw, 18px);
+      gap: clamp(14px, 2.2vw, 28px);
       width: 100%;
+      flex: 1 1 auto;
+      min-height: clamp(280px, 46vh, 620px);
+      align-content: stretch;
     }
 
     @media (max-width: 720px) {
-      .use-grid { grid-template-columns: 1fr; }
+      .use-grid { grid-template-columns: 1fr; min-height: 0; }
     }
 
     .use-step {
       display: grid;
-      grid-template-columns: 40px 1fr;
-      gap: 12px;
-      align-items: start;
+      grid-template-columns: clamp(44px, 4.5vw, 64px) 1fr;
+      gap: clamp(14px, 1.8vw, 24px);
+      align-items: center;
       border: 1px solid var(--line);
       background: rgba(16, 17, 20, 0.72);
-      padding: clamp(12px, 1.6vw, 18px);
+      padding: clamp(22px, 3.4vh, 44px) clamp(18px, 2.4vw, 36px);
+      min-height: 0;
+      height: 100%;
     }
 
     .use-step .num {
       font-family: var(--font-display);
       font-weight: 800;
-      font-size: clamp(20px, 2.6vw, 30px);
+      font-size: clamp(28px, 3.6vw, 48px);
       color: var(--accent);
       line-height: 1;
     }
 
     .use-step h3 {
       font-family: var(--font-display);
-      font-size: clamp(15px, 1.8vw, 20px);
+      font-size: clamp(18px, 2.3vw, 28px);
       color: var(--text);
-      margin-bottom: 4px;
+      margin-bottom: clamp(6px, 1vh, 12px);
     }
 
     .use-step p {
-      font-size: clamp(12px, 1.2vw, 14px);
-      line-height: 1.45;
+      font-size: clamp(14px, 1.5vw, 18px);
+      line-height: 1.5;
       color: var(--muted);
+    }
+
+    /* Features / tech cards — give sparse 2-card slides more presence */
+    .grid-2 .card,
+    .grid-3 .card {
+      min-height: clamp(140px, 18vh, 220px);
+      justify-content: center;
+    }
+
+    /* Projector / large 16:9 — fill the frame without overflow */
+    @media (min-width: 1400px) and (min-height: 800px) {
+      .slide-content { gap: clamp(18px, 2.8vh, 40px); }
+      h2 { font-size: clamp(40px, 4.8vw, 68px); }
+      .lede { font-size: clamp(18px, 1.6vw, 24px); }
+      .card { padding: clamp(24px, 2.4vw, 40px); }
+      .use-step { padding: clamp(28px, 3.6vh, 48px) clamp(22px, 2.4vw, 40px); }
+      .use-grid { min-height: clamp(360px, 52vh, 680px); }
+      .dbox { padding: clamp(18px, 2.4vh, 30px) 22px; }
+      .grid-2, .grid-3, .use-grid, .shots, .gallery {
+        gap: clamp(18px, 2vw, 32px);
+      }
     }
 
     .nav-controls {
@@ -649,7 +735,7 @@
         <p class="eyebrow anim">Under the hood</p>
         <h2 class="anim d2">How it's built</h2>
         <p class="lede anim d3">npm monorepo with Turborepo. Next.js app talks to Postgres (Docker locally, Neon in prod), OpenAI, and local Ollama for embeddings.</p>
-        <div class="grid-2 anim d4" style="margin-top: 4px;">
+        <div class="grid-2 anim d4">
           <div class="card">
             <h3>App layer</h3>
             <ul>
@@ -675,9 +761,9 @@
     <!-- 3. Features -->
     <section class="slide">
       <div class="chrome"><span>03 / FEATURES</span><span>CHAT · DOCS · DRIVE</span></div>
-      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
+      <div class="slide-content">
         <p class="eyebrow anim">Product surface</p>
-        <h2 class="anim d2" style="margin-bottom: 8px;">What ships today</h2>
+        <h2 class="anim d2">What ships today</h2>
         <div class="grid-2 anim d3">
           <div class="card">
             <h3>AI Chat</h3>
@@ -720,9 +806,9 @@
     <!-- 4. Screenshots -->
     <section class="slide">
       <div class="chrome"><span>04 / UI</span><span>LIVE CAPTURES</span></div>
-      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
+      <div class="slide-content">
         <p class="eyebrow anim">Product look</p>
-        <h2 class="anim d2" style="margin-bottom: 8px;">From the live site</h2>
+        <h2 class="anim d2">From the live site</h2>
         <div class="shots anim d3">
           <figure class="shot">
             <img src="/presentation/assets/rando-home.png" alt="RANDO landing page with ENDLESS CHATTER hero" />
@@ -739,9 +825,9 @@
     <!-- 5. Architecture -->
     <section class="slide">
       <div class="chrome"><span>05 / ARCHITECTURE</span><span>MONOREPO</span></div>
-      <div class="slide-content" style="justify-content: center; gap: 10px;">
+      <div class="slide-content">
         <p class="eyebrow anim">System shape · one request, top to bottom</p>
-        <h2 class="anim d2" style="margin-bottom: 2px;">Better-T-Stack monorepo</h2>
+        <h2 class="anim d2">Better-T-Stack monorepo</h2>
         <div class="diagram anim d3">
           <div class="layer">
             <div class="layer-tag">Client</div>
@@ -790,11 +876,11 @@
     <!-- 6. What RANDO does -->
     <section class="slide">
       <div class="chrome"><span>06 / WHAT IT DOES</span><span>USER FLOW</span></div>
-      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
+      <div class="slide-content">
         <p class="eyebrow anim">The actual point</p>
-        <h2 class="anim d2" style="margin-bottom: 8px;">What RANDO does for you</h2>
+        <h2 class="anim d2">What RANDO does for you</h2>
         <p class="lede anim d3">Drop in your docs, ask questions, get answers grounded in your own files — then mess around with the games when your brain is fried.</p>
-        <div class="use-grid anim d4" style="margin-top: 4px;">
+        <div class="use-grid anim d4">
           <div class="use-step">
             <span class="num">1</span>
             <div>
@@ -830,7 +916,7 @@
     <!-- 6. Play modes deep dive -->
     <section class="slide">
       <div class="chrome"><span>07 / PLAY</span><span>EMBRACE THE MADNESS</span></div>
-      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
+      <div class="slide-content">
         <p class="eyebrow anim">Extra surfaces</p>
         <h2 class="anim d2">Games inside the protocol</h2>
         <div class="grid-2 anim d3">
@@ -843,16 +929,16 @@
             <p>Full-bleed iframe racer at <code>/drive</code> — procedural low-poly world, nitro, power-slide drift, night headlights, seed worlds (DRIVE-2049).</p>
           </div>
         </div>
-        <p class="lede anim d4" style="margin-top: 4px;">Built as a standalone Three.js (r185) WebGL page in <code>public/games/</code>, embedded via iframe on <code>/drive</code>. Chunked terrain from a string seed hash, custom sky shader, day/night cycle, Web Audio engine loops — no React inside the game loop.</p>
+        <p class="lede anim d4">Built as a standalone Three.js (r185) WebGL page in <code>public/games/</code>, embedded via iframe on <code>/drive</code>. Chunked terrain from a string seed hash, custom sky shader, day/night cycle, Web Audio engine loops — no React inside the game loop.</p>
       </div>
     </section>
 
     <!-- 8. Lore / culture -->
     <section class="slide">
       <div class="chrome"><span>08 / LORE</span><span>EMBRACE THE MADNESS</span></div>
-      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
+      <div class="slide-content">
         <p class="eyebrow anim">Certified guest speakers</p>
-        <h2 class="anim d2" style="margin-bottom: 8px;">The RANDO council</h2>
+        <h2 class="anim d2">The RANDO council</h2>
         <div class="gallery anim d3">
           <figure class="frame">
             <img src="/presentation/assets/meme-csclub.png" alt="Computer Science Club guest speaker gigachad" />
@@ -871,7 +957,7 @@
             <figcaption><span>Ch.04</span> The oracle</figcaption>
           </figure>
         </div>
-        <p class="lede anim d4" style="margin-top: 4px;">RANDO ships serious tech with an unserious face. ENDLESS CHATTER, FRAME: ∞, and a council of guest speakers who peer-reviewed absolutely nothing.</p>
+        <p class="lede anim d4">RANDO ships serious tech with an unserious face. ENDLESS CHATTER, FRAME: ∞, and a council of guest speakers who peer-reviewed absolutely nothing.</p>
       </div>
     </section>
 
