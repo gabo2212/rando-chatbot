@@ -702,11 +702,20 @@
     }
 
     .closing-grid .shot {
-      max-height: min(62vh, 560px);
+      max-height: min(70vh, 640px);
+      background: #0a0b0c;
     }
 
     .closing-grid .shot img {
-      min-height: clamp(220px, 40vh, 480px);
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+      height: auto;
+      max-height: min(58vh, 520px);
+      aspect-ratio: auto;
+      object-fit: contain;
+      object-position: center center;
+      background: #0a0b0c;
     }
 
     @media (max-width: 800px) {
@@ -813,52 +822,9 @@
       </div>
     </section>
 
-    <!-- 4. Chaos board -->
-    <section class="slide lore-slide">
-      <div class="chrome"><span>04 / LORE</span><span>STAKEHOLDER REVIEW</span></div>
-      <div class="slide-content">
-        <p class="eyebrow anim">Exhibit A through C</p>
-        <h2 class="anim d2">The board that greenlit this</h2>
-        <p class="lede anim d3">PRDs in IG stories. QA was a vibe check. Legal said “ship it.”</p>
-        <div class="gallery anim d4">
-          <figure class="frame">
-            <img src="/presentation/assets/lore-snoop.png" alt="Snoop gore meme promoting Boba Boyz" />
-            <figcaption><span>01</span> — Ambassador</figcaption>
-          </figure>
-          <figure class="frame">
-            <img src="/presentation/assets/lore-boba.png" alt="Boba Boyz pouch held up to camera" />
-            <figcaption><span>02</span> — Side effects</figcaption>
-          </figure>
-          <figure class="frame">
-            <img src="/presentation/assets/lore-story.png" alt="Instagram story with misterhennen tag" style="object-position: center 20%;" />
-            <figcaption><span>03</span> — Research</figcaption>
-          </figure>
-        </div>
-      </div>
-    </section>
-
-    <!-- 5. Live proof -->
+    <!-- 4. Architecture -->
     <section class="slide">
-      <div class="chrome"><span>05 / PROOF</span><span>LIVE CAPTURES</span></div>
-      <div class="slide-content">
-        <p class="eyebrow anim">It actually posted</p>
-        <h2 class="anim d2">Real Discord receipts</h2>
-        <div class="shots anim d3">
-          <figure class="shot wide">
-            <img src="/presentation/assets/discord-message.png" alt="HennenBot message with image attachment in Discord channel" />
-            <figcaption><span>Sent</span> — Bot message + image in channel</figcaption>
-          </figure>
-          <figure class="shot">
-            <img src="/presentation/assets/discord-bot-profile.png" alt="HennenBot Discord application profile with APP badge" />
-            <figcaption><span>App</span> — HennenBot#3314 installed</figcaption>
-          </figure>
-        </div>
-      </div>
-    </section>
-
-    <!-- 6. Architecture -->
-    <section class="slide">
-      <div class="chrome"><span>06 / ARCHITECTURE</span><span>OFFICIAL BOT ONLY</span></div>
+      <div class="chrome"><span>04 / ARCHITECTURE</span><span>OFFICIAL BOT ONLY</span></div>
       <div class="slide-content">
         <p class="eyebrow anim">System shape</p>
         <h2 class="anim d2">From chat tool to Discord API</h2>
@@ -893,9 +859,33 @@
       </div>
     </section>
 
-    <!-- 7. Capabilities -->
+    <!-- 5. Chaos board -->
+    <section class="slide lore-slide">
+      <div class="chrome"><span>05 / LORE</span><span>STAKEHOLDER REVIEW</span></div>
+      <div class="slide-content">
+        <p class="eyebrow anim">Exhibit A through C</p>
+        <h2 class="anim d2">The board that greenlit this</h2>
+        <p class="lede anim d3">PRDs in IG stories. QA was a vibe check. Legal said “ship it.”</p>
+        <div class="gallery anim d4">
+          <figure class="frame">
+            <img src="/presentation/assets/lore-snoop.png" alt="Snoop gore meme promoting Boba Boyz" />
+            <figcaption><span>01</span> — Ambassador</figcaption>
+          </figure>
+          <figure class="frame">
+            <img src="/presentation/assets/lore-boba.png" alt="Boba Boyz pouch held up to camera" />
+            <figcaption><span>02</span> — Side effects</figcaption>
+          </figure>
+          <figure class="frame">
+            <img src="/presentation/assets/lore-story.png" alt="Instagram story with misterhennen tag" style="object-position: center 20%;" />
+            <figcaption><span>03</span> — Research</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Capabilities -->
     <section class="slide">
-      <div class="chrome"><span>07 / TOOLS</span><span>WHAT CHAT CAN DO</span></div>
+      <div class="chrome"><span>06 / TOOLS</span><span>WHAT CHAT CAN DO</span></div>
       <div class="slide-content">
         <p class="eyebrow anim">Controlled surface</p>
         <h2 class="anim d2">Discord actions from chat</h2>
@@ -926,6 +916,25 @@
           </div>
         </div>
         <p class="lede anim d4">No self-bots. No mass DMs. No Administrator. Mentions like @everyone stay blocked unless you explicitly allow them.</p>
+      </div>
+    </section>
+
+    <!-- 7. Live proof -->
+    <section class="slide">
+      <div class="chrome"><span>07 / PROOF</span><span>LIVE CAPTURES</span></div>
+      <div class="slide-content">
+        <p class="eyebrow anim">It actually posted</p>
+        <h2 class="anim d2">Real Discord receipts</h2>
+        <div class="shots anim d3">
+          <figure class="shot wide">
+            <img src="/presentation/assets/discord-message.png" alt="HennenBot message with image attachment in Discord channel" />
+            <figcaption><span>Sent</span> — Bot message + image in channel</figcaption>
+          </figure>
+          <figure class="shot">
+            <img src="/presentation/assets/discord-bot-profile.png" alt="HennenBot Discord application profile with APP badge" />
+            <figcaption><span>App</span> — HennenBot#3314 installed</figcaption>
+          </figure>
+        </div>
       </div>
     </section>
 
@@ -979,7 +988,7 @@
             </div>
           </div>
           <figure class="shot anim d3">
-            <img src="/presentation/assets/lore-council.png" alt="RANDO council projected live" style="aspect-ratio: 3 / 4; object-fit: cover;" />
+            <img src="/presentation/assets/lore-council.png" alt="RANDO council projected live" />
             <figcaption><span>Live</span> — RANDO council in the room</figcaption>
           </figure>
         </div>
