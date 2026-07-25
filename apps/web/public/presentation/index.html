@@ -648,7 +648,7 @@
       <div class="slide-content">
         <p class="eyebrow anim">Under the hood</p>
         <h2 class="anim d2">How it's built</h2>
-        <p class="lede anim d3">npm monorepo with Turborepo. Next.js app talks to Postgres, OpenAI, and local Ollama for embeddings.</p>
+        <p class="lede anim d3">npm monorepo with Turborepo. Next.js app talks to Postgres (Docker locally, Neon in prod), OpenAI, and local Ollama for embeddings.</p>
         <div class="grid-2 anim d4" style="margin-top: 4px;">
           <div class="card">
             <h3>App layer</h3>
@@ -662,7 +662,7 @@
           <div class="card">
             <h3>Data &amp; AI</h3>
             <ul>
-              <li>Postgres 16 + pgvector (Docker)</li>
+              <li>Postgres + pgvector — Docker local / Neon on Vercel</li>
               <li>Drizzle ORM · Better Auth</li>
               <li>OpenAI for chat streaming</li>
               <li>Ollama <code>nomic-embed-text</code> for RAG</li>
@@ -770,7 +770,7 @@
           <div class="layer">
             <div class="layer-tag">Data &amp; AI</div>
             <div class="layer-boxes">
-              <div class="dbox hl"><strong>Postgres 16 + pgvector</strong><span>Drizzle schemas · :5433 · HNSW search</span></div>
+              <div class="dbox hl"><strong>Postgres + pgvector</strong><span>Docker :5433 local · Neon serverless on Vercel</span></div>
               <div class="dbox"><strong>OpenAI</strong><span>Streaming chat completions</span></div>
               <div class="dbox"><strong>Ollama</strong><span>nomic-embed-text · RAG</span></div>
             </div>
@@ -883,10 +883,12 @@
         <h2 class="anim d2">Live on Vercel.</h2>
         <p class="lede anim d3">
           <a class="link" href="https://chatbot-ecru-two-16.vercel.app" target="_blank" rel="noopener">chatbot-ecru-two-16.vercel.app</a>
+          — auth, chats, and Discord links persist on Neon Postgres + pgvector.
         </p>
         <div class="cta-row anim d4">
           <span class="pill">Repo: gabo2212/rando-chatbot</span>
-          <span class="pill">Local: npm run dev :3001</span>
+          <span class="pill">Local: Docker Postgres :5433</span>
+          <span class="pill">Prod DB: Neon</span>
           <a class="pill" href="/presentation/discord.html" style="text-decoration:none">Discord deck →</a>
         </div>
       </div>
