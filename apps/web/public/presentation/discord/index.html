@@ -547,6 +547,45 @@
 
     .frame figcaption span { color: var(--accent); }
 
+    /* Lore board: pull content up + shorter frames so faces aren't cropped */
+    .lore-slide {
+      padding-top: clamp(40px, 5.5vw, 52px);
+      padding-bottom: clamp(18px, 2.5vw, 32px);
+    }
+
+    .lore-slide .slide-content {
+      justify-content: flex-start;
+      padding-top: 0;
+      gap: clamp(6px, 1vh, 12px);
+    }
+
+    .lore-slide h2 {
+      font-size: clamp(24px, 3.6vw, 40px);
+      margin-bottom: 0 !important;
+    }
+
+    .lore-slide .lede {
+      max-width: 54rem;
+      font-size: clamp(12px, 1.35vw, 15px);
+      line-height: 1.4;
+    }
+
+    .lore-slide .gallery {
+      gap: clamp(6px, 1vw, 10px);
+      margin-top: 2px;
+    }
+
+    .lore-slide .frame img {
+      aspect-ratio: 1 / 1;
+      max-height: min(46vh, 300px);
+      height: auto;
+    }
+
+    .lore-slide .frame figcaption {
+      padding: 5px 8px;
+      font-size: 9px;
+    }
+
     .side-shots {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -690,12 +729,12 @@
       </div>
     </section>
 
-    <!-- 4. Chaos board (pics from the old why/prompts dumps) -->
-    <section class="slide">
+    <!-- 4. Chaos board -->
+    <section class="slide lore-slide">
       <div class="chrome"><span>04 / LORE</span><span>STAKEHOLDER REVIEW</span></div>
-      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
+      <div class="slide-content">
         <p class="eyebrow anim">Exhibit A through E</p>
-        <h2 class="anim d2" style="margin-bottom: 8px;">The board that greenlit this</h2>
+        <h2 class="anim d2">The board that greenlit this</h2>
         <p class="lede anim d3">Product requirements written in Instagram stories. QA was a vibe check. Legal said “ship it” while coughing blood into a Boba Boyz pouch.</p>
         <div class="gallery anim d4">
           <figure class="frame">
