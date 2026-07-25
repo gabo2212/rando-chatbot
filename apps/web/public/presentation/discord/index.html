@@ -552,11 +552,41 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: clamp(8px, 1.2vw, 14px);
       width: 100%;
-      margin-top: 4px;
+      margin-top: auto;
+      flex-shrink: 0;
+    }
+
+    .side-shots .frame img,
+    .prompt-shots .shot img {
+      aspect-ratio: auto;
+      height: clamp(100px, 16vh, 150px);
+      width: 100%;
+      object-fit: cover;
+      object-position: center top;
+    }
+
+    .side-shots .frame figcaption,
+    .prompt-shots .shot figcaption {
+      padding: 6px 10px;
+      font-size: 10px;
+    }
+
+    .prompt-shots {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(8px, 1.2vw, 14px);
+      width: 100%;
+      margin-top: auto;
+      flex-shrink: 0;
     }
 
     @media (max-width: 720px) {
       .side-shots { grid-template-columns: 1fr; }
+      .prompt-shots { grid-template-columns: 1fr; }
+      .side-shots .frame img,
+      .prompt-shots .shot img {
+        height: 120px;
+      }
     }
 
     .closing-grid {
@@ -594,27 +624,27 @@
     <!-- 2. Pitch -->
     <section class="slide">
       <div class="chrome"><span>02 / WHY</span><span>CHAT → SERVER</span></div>
-      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
+      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px; gap: 12px;">
         <p class="eyebrow anim">The point</p>
         <h2 class="anim d2">Discord without leaving RANDO</h2>
-        <p class="lede anim d3">Ask the chatbot to list servers, post in a channel, drop an image, or DM you — it uses your linked Discord identity and an official bot in a server you manage.</p>
-        <div class="grid-2 anim d4" style="margin-top: 4px;">
-          <div class="card">
+        <p class="lede anim d3">Ask the chatbot to list servers, post, drop an image, or DM you — linked Discord identity + official bot in a server you manage.</p>
+        <div class="grid-2 anim d4" style="margin-top: 0;">
+          <div class="card" style="padding: 14px;">
             <h3>You authorize</h3>
             <ul>
               <li>Discord OAuth (identify + guilds)</li>
               <li>Pick a manageable server</li>
-              <li>Install HennenBot with tight permissions</li>
-              <li>Save default channel + capabilities</li>
+              <li>Install HennenBot</li>
+              <li>Save channel + capabilities</li>
             </ul>
           </div>
-          <div class="card">
+          <div class="card" style="padding: 14px;">
             <h3>Chat executes</h3>
             <ul>
               <li>Natural language → discord_* tools</li>
               <li>Sensitive actions need Confirm</li>
-              <li>Confirm card lives in the chat reply</li>
-              <li>Audit log kept server-side</li>
+              <li>Confirm card in the chat reply</li>
+              <li>Audit log server-side</li>
             </ul>
           </div>
         </div>
@@ -768,11 +798,11 @@
     <!-- 7. Say this -->
     <section class="slide">
       <div class="chrome"><span>07 / PROMPTS</span><span>JUST TYPE IT</span></div>
-      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px;">
+      <div class="slide-content" style="justify-content: flex-start; padding-top: 36px; gap: 12px;">
         <p class="eyebrow anim">In /ai</p>
-        <h2 class="anim d2" style="margin-bottom: 8px;">Stuff you can actually say</h2>
-        <div class="grid-2 anim d3">
-          <div class="card">
+        <h2 class="anim d2" style="margin-bottom: 0;">Stuff you can actually say</h2>
+        <div class="grid-2 anim d3" style="margin-top: 0;">
+          <div class="card" style="padding: 14px;">
             <h3>Messages</h3>
             <ul>
               <li>“list my discord servers”</li>
@@ -781,7 +811,7 @@
               <li>“DM me on discord: we’re live”</li>
             </ul>
           </div>
-          <div class="card">
+          <div class="card" style="padding: 14px;">
             <h3>Server moves</h3>
             <ul>
               <li>“what channels does the bot see?”</li>
@@ -791,14 +821,14 @@
             </ul>
           </div>
         </div>
-        <p class="lede anim d4" style="margin-top: 4px;">Attach the image in chat, ask for the channel, confirm once — HennenBot drops it. No portal tab yoga.</p>
-        <div class="shots anim d4" style="margin-top: 2px;">
+        <p class="lede anim d4" style="margin-top: 0;">Attach the image in chat, ask for the channel, confirm once — HennenBot drops it.</p>
+        <div class="prompt-shots anim d4">
           <figure class="shot">
-            <img src="../assets/lore-snoop.png" alt="Meme promo image posted vibe" style="aspect-ratio: 1 / 1; object-fit: cover;" />
+            <img src="../assets/lore-snoop.png" alt="Meme promo image posted vibe" />
             <figcaption><span>Attach</span> — Drop the pic in chat</figcaption>
           </figure>
           <figure class="shot">
-            <img src="../assets/lore-boba.png" alt="Boba Boyz product meme" style="aspect-ratio: 1 / 1; object-fit: cover;" />
+            <img src="../assets/lore-boba.png" alt="Boba Boyz product meme" />
             <figcaption><span>Post</span> — Bot ships it to the channel</figcaption>
           </figure>
         </div>
