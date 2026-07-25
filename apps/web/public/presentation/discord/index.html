@@ -504,18 +504,14 @@
 
     .gallery {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: clamp(8px, 1.2vw, 14px);
       width: 100%;
       align-items: stretch;
     }
 
-    @media (max-width: 900px) {
-      .gallery { grid-template-columns: repeat(3, 1fr); }
-    }
-
     @media (max-width: 560px) {
-      .gallery { grid-template-columns: repeat(2, 1fr); }
+      .gallery { grid-template-columns: 1fr; }
     }
 
     .frame {
@@ -576,8 +572,8 @@
     }
 
     .lore-slide .frame img {
-      aspect-ratio: 1 / 1;
-      max-height: min(46vh, 300px);
+      aspect-ratio: 3 / 4;
+      max-height: min(52vh, 420px);
       height: auto;
     }
 
@@ -733,7 +729,7 @@
     <section class="slide lore-slide">
       <div class="chrome"><span>04 / LORE</span><span>STAKEHOLDER REVIEW</span></div>
       <div class="slide-content">
-        <p class="eyebrow anim">Exhibit A through E</p>
+        <p class="eyebrow anim">Exhibit A through C</p>
         <h2 class="anim d2">The board that greenlit this</h2>
         <p class="lede anim d3">Product requirements written in Instagram stories. QA was a vibe check. Legal said “ship it” while coughing blood into a Boba Boyz pouch.</p>
         <div class="gallery anim d4">
@@ -748,14 +744,6 @@
           <figure class="frame">
             <img src="../assets/lore-story.png" alt="Instagram story with misterhennen tag" style="object-position: center 20%;" />
             <figcaption><span>03</span> User research</figcaption>
-          </figure>
-          <figure class="frame">
-            <img src="../assets/lore-freedom.png" alt="Speaker in FREEDOM shirt looking shocked" />
-            <figcaption><span>04</span> Roadmap meeting</figcaption>
-          </figure>
-          <figure class="frame">
-            <img src="../assets/lore-council.png" alt="Shirtless presenter with RANDO council on projector" />
-            <figcaption><span>05</span> All-hands</figcaption>
           </figure>
         </div>
       </div>
