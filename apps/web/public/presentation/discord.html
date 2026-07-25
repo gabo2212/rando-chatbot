@@ -369,17 +369,19 @@
 
     .closing .slide-content {
       justify-content: center;
-      gap: clamp(18px, 3vh, 40px);
+      gap: clamp(10px, 1.6vh, 22px);
+      padding-top: clamp(8px, 1.2vh, 16px);
+      padding-bottom: clamp(4px, 1vh, 12px);
     }
 
     .closing h2 {
-      max-width: 18ch;
-      font-size: clamp(36px, 6vw, 72px);
+      max-width: 14ch;
+      font-size: clamp(32px, 5.2vw, 64px);
     }
 
     .closing .lede {
-      font-size: clamp(16px, 1.9vw, 24px);
-      max-width: 44rem;
+      font-size: clamp(15px, 1.7vw, 22px);
+      max-width: 34rem;
     }
 
     .shots {
@@ -693,16 +695,24 @@
 
     .closing-grid {
       display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: clamp(20px, 3.5vw, 40px);
-      align-items: center;
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: clamp(12px, 2vw, 28px);
+      align-items: stretch;
       width: 100%;
       flex: 1 1 auto;
       min-height: 0;
     }
 
+    .closing-grid > div {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+
     .closing-grid .shot {
-      max-height: min(70vh, 640px);
+      height: 100%;
+      max-height: min(86vh, 860px);
       background: #0a0b0c;
     }
 
@@ -710,8 +720,8 @@
       flex: 1 1 auto;
       min-height: 0;
       width: 100%;
-      height: auto;
-      max-height: min(58vh, 520px);
+      height: 100%;
+      max-height: min(78vh, 780px);
       aspect-ratio: auto;
       object-fit: contain;
       object-position: center center;
