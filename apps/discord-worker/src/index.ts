@@ -54,11 +54,13 @@ const client = new Client({
 });
 
 const HELP =
-  "Mention me with a question, e.g. `@bot what's up?` — or use `/chat prompt:<question>`.";
+  "Mention me with a question (optional image/GIF), e.g. `@bot what's this?` + attach a pic — or use `/chat prompt:<question>`.";
 
 /** Per-channel cooldown to reduce spam (in addition to API rate limits). */
 const channelCooldown = new Map<string, number>();
 const CHANNEL_COOLDOWN_MS = 3_000;
+const MAX_IMAGE_ATTACHMENTS = 4;
+const IMAGE_FILENAME_RE = /\.(png|jpe?g|gif|webp|bmp)(\?|#|$)/i;
 
 function stripBotMention(content: string, botId: string): string {
   return content.replace(new RegExp(`<@!?${botId}>`, "g"), "").replace(/\s+/g, " ").trim();
@@ -69,8 +71,41 @@ function messageMentionsBot(message: Message, botId: string): boolean {
   return new RegExp(`<@!?${botId}>`).test(message.content);
 }
 
+function isImageAttachment(contentType: string | null, filename: string | null): boolean {
+  const ct = (contentType ?? "").toLowerCase();
+  if (ct.startsWith("image/")) return true;
+  return IMAGE_FILENAME_RE.test(filename ?? "");
+}
+
+/** Collect Discord CDN image/GIF URLs from attachments (+ embed images when present). */
+function collectImageUrls(message: Message, limit = MAX_IMAGE_ATTACHMENTS): string[] {
+  const urls: string[] = [];
+  const seen = new Set<string>();
+
+  const push = (url: string | null | undefined) => {
+    if (!url || seen.has(url) || urls.length >= limit) return;
+    seen.add(url);
+    urls.push(url);
+  };
+
+  for (const att of message.attachments.values()) {
+    if (!isImageAttachment(att.contentType, att.name)) continue;
+    push(att.proxyURL || att.url);
+  }
+
+  for (const embed of message.embeds) {
+    if (urls.length >= limit) break;
+    push(embed.image?.proxyURL || embed.image?.url);
+    if (urls.length >= limit) break;
+    push(embed.thumbnail?.proxyURL || embed.thumbnail?.url);
+  }
+
+  return urls;
+}
+
 async function fetchAiReply(input: {
   prompt: string;
+  imageUrls?: string[];
   guildId?: string;
   channelId: string;
   discordUserId: string;
@@ -126,7 +161,8 @@ async function handleMention(message: Message) {
   channelCooldown.set(message.channelId, now);
 
   const prompt = stripBotMention(message.content, botId);
-  if (!prompt) {
+  const imageUrls = collectImageUrls(message);
+  if (!prompt && imageUrls.length === 0) {
     await message.reply({ content: HELP, allowedMentions: { parse: [] } });
     return;
   }
@@ -137,6 +173,7 @@ async function handleMention(message: Message) {
 
   const result = await fetchAiReply({
     prompt,
+    imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
     guildId: message.guildId ?? undefined,
     channelId: message.channelId,
     discordUserId: message.author.id,

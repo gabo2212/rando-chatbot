@@ -36,11 +36,13 @@ npm run dev -w @chatbot/discord-worker                 # local gateway + @mentio
 
 ## @mention flow
 
-1. User: `@HennenBot what's up`
-2. Worker receives `MESSAGE_CREATE`, strips the mention
+1. User: `@HennenBot what's up` (optional: attach png/jpeg/webp/gif)
+2. Worker receives `MESSAGE_CREATE`, strips the mention, collects up to 4 image attachment URLs
 3. Worker POSTs to `{WEB_APP_URL}/api/integrations/discord/mention-reply` with `Authorization: Bearer $DISCORD_WORKER_SECRET`
-4. Web app runs the same OpenAI / AI SDK stack as `/api/ai` (no Discord tool confirmations)
+4. Web app calls xAI Grok via AI SDK (`XAI_MODEL`, optional `XAI_VISION_MODEL` when images are present)
 5. Worker replies in-channel (splits at 2000 chars)
+
+**Images / GIFs:** Discord serves GIF attachments as `image/gif`. Vision models often see the first frame of animated GIFs — that is expected.
 
 ## Slash `/chat`
 

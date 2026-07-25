@@ -37,14 +37,16 @@ Bitwise value from `BASE_BOT_PERMISSIONS` (+ optional Manage Channels / Voice):
 Requires the **discord-worker** process (Gateway). Vercel alone cannot keep a Discord Gateway socket open.
 
 ```text
-User @mentions bot in a guild channel
+User @mentions bot in a guild channel (+ optional image/GIF attachments)
   → discord-worker (MESSAGE_CREATE)
   → POST /api/integrations/discord/mention-reply (Bearer DISCORD_WORKER_SECRET)
-  → OpenAI via AI SDK (same model as website chat)
+  → xAI Grok via AI SDK (text, or multimodal when images are attached)
   → reply in channel
 ```
 
 Slash `/chat` works on Vercel without the worker (ephemeral AI reply).
+
+Image/GIF notes: the worker forwards Discord CDN attachment URLs (up to 4). Animated GIFs may be interpreted as a still first frame by the vision model.
 
 ## Database
 

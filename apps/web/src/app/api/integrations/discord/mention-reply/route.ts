@@ -12,6 +12,8 @@ export const maxDuration = 60;
 
 const bodySchema = z.object({
   prompt: z.string().max(4000),
+  /** Discord CDN attachment / embed image URLs (png/jpeg/webp/gif). Capped server-side. */
+  imageUrls: z.array(z.string().url().max(2048)).max(8).optional(),
   guildId: z.string().min(1).optional(),
   channelId: z.string().min(1).optional(),
   discordUserId: z.string().min(1).optional(),

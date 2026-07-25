@@ -19,6 +19,9 @@ import {
 import { createOAuthState, createPkcePair } from "@/lib/integrations/discord/oauth";
 import {
   checkMentionRateLimit,
+  isAllowedDiscordImageUrl,
+  isLikelyImageAttachment,
+  normalizeDiscordImageUrls,
   resetMentionRateLimitForTests,
   splitDiscordContent,
   stripBotMention,
@@ -160,5 +163,31 @@ describe("discord mention reply helpers", () => {
     const blocked = checkMentionRateLimit("g:u");
     expect(blocked.ok).toBe(false);
     if (!blocked.ok) expect(blocked.retryAfterMs).toBeGreaterThan(0);
+  });
+
+  it("detects image attachments by content-type or filename", () => {
+    expect(isLikelyImageAttachment({ contentType: "image/png", filename: "x.bin" })).toBe(true);
+    expect(isLikelyImageAttachment({ contentType: "application/octet-stream", filename: "meme.GIF" })).toBe(true);
+    expect(isLikelyImageAttachment({ contentType: "application/pdf", filename: "doc.pdf" })).toBe(false);
+  });
+
+  it("allows Discord CDN image URLs and caps to 4", () => {
+    expect(isAllowedDiscordImageUrl("https://cdn.discordapp.com/attachments/1/2/a.png")).toBe(true);
+    expect(isAllowedDiscordImageUrl("https://media.discordapp.net/attachments/1/2/b.gif")).toBe(true);
+    expect(isAllowedDiscordImageUrl("https://evil.example/a.png")).toBe(false);
+    expect(isAllowedDiscordImageUrl("http://cdn.discordapp.com/attachments/1/2/a.png")).toBe(false);
+
+    const urls = [
+      "https://cdn.discordapp.com/attachments/1/2/a.png",
+      "https://cdn.discordapp.com/attachments/1/2/a.png",
+      "https://media.discordapp.net/attachments/1/2/b.gif",
+      "https://evil.example/c.png",
+      "https://cdn.discordapp.com/attachments/1/2/c.webp",
+      "https://cdn.discordapp.com/attachments/1/2/d.jpg",
+      "https://cdn.discordapp.com/attachments/1/2/e.png",
+    ];
+    const normalized = normalizeDiscordImageUrls(urls);
+    expect(normalized).toHaveLength(4);
+    expect(normalized.every((u) => u.includes("discord"))).toBe(true);
   });
 });

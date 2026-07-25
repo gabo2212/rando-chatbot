@@ -948,33 +948,39 @@
       </div>
     </section>
 
-    <!-- 8. Say this -->
+    <!-- 8. Discord AI replies -->
     <section class="slide">
-      <div class="chrome"><span>08 / PROMPTS</span><span>JUST TYPE IT</span></div>
+      <div class="chrome"><span>08 / REPLIES</span><span>GROK IN CHANNEL</span></div>
       <div class="slide-content">
-        <p class="eyebrow anim">In /ai</p>
-        <h2 class="anim d2">Stuff you can actually say</h2>
-        <div class="grid-2 anim d3">
+        <p class="eyebrow anim">In Discord</p>
+        <h2 class="anim d2">AI replies in the channel</h2>
+        <div class="grid-3 anim d3">
           <div class="card">
-            <h3>Messages</h3>
+            <h3>@mention</h3>
             <ul>
-              <li>“list my discord servers”</li>
-              <li>“send hello to #main-puss in kool kids klub”</li>
-              <li>“post this pic in main puss saying …” + attach image</li>
-              <li>“DM me on discord: we’re live”</li>
+              <li>Ping the bot → deranged Grok / xAI reply in-thread</li>
+              <li>Attach a pic or GIF with the mention — it can see it</li>
+              <li>Image-only works too (no text required)</li>
             </ul>
           </div>
           <div class="card">
-            <h3>Server moves</h3>
+            <h3>/chat</h3>
             <ul>
-              <li>“what channels does the bot see?”</li>
-              <li>“make a thread under #general called rando”</li>
-              <li>“create a text channel named brainrot”</li>
-              <li>Confirm card pops under the reply → hit send</li>
+              <li>Slash alternate: <code>/chat prompt:…</code></li>
+              <li>Ephemeral reply (only you see it)</li>
+              <li>Runs on Vercel — no Gateway needed</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Worker</h3>
+            <ul>
+              <li>Gateway process keeps the bot online</li>
+              <li>Forwards mentions (+ up to 4 CDN images)</li>
+              <li>Splits long chaos at Discord’s 2000-char limit</li>
             </ul>
           </div>
         </div>
-        <p class="lede anim d4">Attach the image in chat, ask for the channel, confirm once — HennenBot drops it. No portal tab yoga.</p>
+        <p class="lede anim d4">Try: <code>@HennenBot react to this</code> + a meme GIF. Animated GIFs may land as a first frame — still enough for the bit.</p>
       </div>
     </section>
 

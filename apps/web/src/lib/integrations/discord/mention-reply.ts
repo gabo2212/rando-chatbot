@@ -1,4 +1,4 @@
-import { generateText } from "ai";
+import { generateText, type UserContent } from "ai";
 import { and, desc, eq } from "drizzle-orm";
 
 import { discordGuildConnection } from "@chatbot/db";
@@ -8,10 +8,21 @@ import { getXaiChatModel } from "@/lib/xai-model";
 
 export const DISCORD_CONTENT_LIMIT = 2000;
 export const DISCORD_MENTION_HELP =
-  "Mention me with a question, e.g. `@bot what's the weather?` — or use `/chat prompt:<question>`.";
+  "Mention me with a question (and optional image/GIF), e.g. `@bot what's this?` + attach a pic — or use `/chat prompt:<question>`.";
+export const DISCORD_IMAGE_URL_LIMIT = 4;
 
 const RATE_WINDOW_MS = 15_000;
 const RATE_MAX_PER_WINDOW = 3;
+
+/** Discord CDN hosts we accept for vision (attachments / proxies / embeds). */
+const DISCORD_CDN_HOSTS = new Set([
+  "cdn.discordapp.com",
+  "media.discordapp.net",
+  "images-ext-1.discordapp.net",
+  "images-ext-2.discordapp.net",
+]);
+
+const IMAGE_FILENAME_RE = /\.(png|jpe?g|gif|webp|bmp)(\?|#|$)/i;
 
 /** Best-effort in-memory rate limit (per serverless isolate / worker process). */
 const rateBuckets = new Map<string, number[]>();
@@ -26,6 +37,11 @@ export function buildDiscordChatSystemPrompt(): string {
 - Sound like a Discord native who mainlined every cursed reply meme at once. Not a corporate helpdesk. Not a therapist. Not ChatGPT.
 - Vary hard between replies: sometimes short deranged bullets, sometimes a single deranged paragraph, sometimes a fake ritual, sometimes a bit that collapses mid-sentence. Never samey.
 
+## Images / GIFs
+- When the user attaches images or GIFs with the @mention, you CAN see them (vision). React to what is actually in the picture — roast it, invent lore, answer questions about it.
+- Animated GIFs may arrive as a still first frame. Treat that as enough; do not claim you watched every frame of a video.
+- If there is an image and little/no text, still reply about the image instead of asking them to type a question.
+
 ## Format
 - Discord-friendly plain text + light Markdown Discord supports (bold, italics, code, lists). Prefer under ~1500 characters when possible, but insanity > brevity if you need room to cook.
 - No walls of numbered corporate steps unless the bit is mocking corporate steps.
@@ -35,6 +51,43 @@ export function buildDiscordChatSystemPrompt(): string {
 ## Hard rails (still chaotic, just not illegal)
 - Do NOT provide CSAM, real crime how-tos, or scam/phishing instructions. Edgy/deranged comedy about fictional nonsense is fine.
 - Refuse those by being extremely weird about it, then redirect — never lecture like a ToS bot.`;
+}
+
+export function isLikelyImageAttachment(input: {
+  contentType?: string | null;
+  filename?: string | null;
+}): boolean {
+  const ct = (input.contentType ?? "").toLowerCase();
+  if (ct.startsWith("image/")) return true;
+  return IMAGE_FILENAME_RE.test(input.filename ?? "");
+}
+
+export function isAllowedDiscordImageUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:") return false;
+    const host = parsed.hostname.toLowerCase();
+    if (DISCORD_CDN_HOSTS.has(host)) return true;
+    // Discord sometimes serves attachments under *.discordapp.net / *.discord.com CDNs.
+    return host.endsWith(".discordapp.net") || host.endsWith(".discordapp.com");
+  } catch {
+    return false;
+  }
+}
+
+/** Cap + filter image URLs from the Gateway worker before sending to xAI. */
+export function normalizeDiscordImageUrls(urls: string[] | undefined, limit = DISCORD_IMAGE_URL_LIMIT): string[] {
+  if (!urls?.length) return [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of urls) {
+    const url = raw.trim();
+    if (!url || seen.has(url) || !isAllowedDiscordImageUrl(url)) continue;
+    seen.add(url);
+    out.push(url);
+    if (out.length >= limit) break;
+  }
+  return out;
 }
 
 export function stripBotMention(content: string, botId: string): string {
@@ -100,6 +153,8 @@ export async function resolveLinkedUserIdForGuild(guildId: string | undefined): 
 
 export type DiscordChatCompletionInput = {
   prompt: string;
+  /** Discord CDN image/GIF attachment (or embed) URLs — capped server-side. */
+  imageUrls?: string[];
   guildId?: string;
   channelId?: string;
   discordUserId?: string;
@@ -110,11 +165,28 @@ export type DiscordChatCompletionResult =
   | { ok: true; text: string; chunks: string[]; linkedUserId: string | null }
   | { ok: false; error: string; status: number };
 
+function buildUserContent(prompt: string, imageUrls: string[]): UserContent {
+  const text =
+    prompt ||
+    (imageUrls.length === 1
+      ? "React to this image like the deranged Discord goblin you are."
+      : `React to these ${imageUrls.length} images like the deranged Discord goblin you are.`);
+
+  if (imageUrls.length === 0) return text;
+
+  return [
+    { type: "text", text: text.slice(0, 4000) },
+    ...imageUrls.map((url) => ({ type: "image" as const, image: new URL(url) })),
+  ];
+}
+
 export async function completeDiscordChat(
   input: DiscordChatCompletionInput,
 ): Promise<DiscordChatCompletionResult> {
   const prompt = input.prompt.trim();
-  if (!prompt) {
+  const imageUrls = normalizeDiscordImageUrls(input.imageUrls);
+
+  if (!prompt && imageUrls.length === 0) {
     return {
       ok: true,
       text: DISCORD_MENTION_HELP,
@@ -133,7 +205,8 @@ export async function completeDiscordChat(
     };
   }
 
-  const model = getXaiChatModel();
+  const hasImages = imageUrls.length > 0;
+  const model = getXaiChatModel({ vision: hasImages });
   if (!model) {
     return { ok: false, error: "xAI is not configured on the server (set XAI_API_KEY).", status: 503 };
   }
@@ -143,6 +216,9 @@ export async function completeDiscordChat(
     input.guildId ? `Discord guild id: ${input.guildId}` : null,
     input.discordUsername ? `Asking user: ${input.discordUsername}` : null,
     linkedUserId ? `Linked RANDO user id: ${linkedUserId}` : "No linked RANDO guild owner in DB (shared bot AI path).",
+    hasImages
+      ? `Attached images: ${imageUrls.length} (Discord CDN). Animated GIFs may be first-frame only.`
+      : null,
   ]
     .filter(Boolean)
     .join("\n");
@@ -151,7 +227,12 @@ export async function completeDiscordChat(
     const result = await generateText({
       model,
       system: `${buildDiscordChatSystemPrompt()}\n\n## Context\n${contextBits}`,
-      prompt: prompt.slice(0, 4000),
+      messages: [
+        {
+          role: "user",
+          content: buildUserContent(prompt.slice(0, 4000), imageUrls),
+        },
+      ],
       temperature: 1.35,
       maxOutputTokens: 1400,
       abortSignal: AbortSignal.timeout(45_000),
